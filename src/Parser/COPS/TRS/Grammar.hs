@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.TRS.Grammar
+-- Module      :  Parser.COPS.TRS.Grammar
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 --
@@ -9,11 +9,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
--- This module manage the grammar for TRSs in the TPDB
+-- This module manage the grammar for TRSs in COPS
 --
 -----------------------------------------------------------------------------
 
-module Parser.TPDB.TRS.Grammar (
+module Parser.COPS.TRS.Grammar (
 
 -- * Exported data
 

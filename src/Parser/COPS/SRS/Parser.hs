@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.SRS.Parser
+-- Module      :  Parser.COPS.SRS.Parser
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 -- 
@@ -8,11 +8,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable 
 --
--- This module manage the parser for SRSs in the TPDB
+-- This module manage the parser for SRSs in COPS format
 --
 -----------------------------------------------------------------------------
 
-module Parser.TPDB.SRS.Parser (
+module Parser.COPS.SRS.Parser (
 
 -- * Exported functions
 
@@ -20,8 +20,8 @@ srsParser
 
 ) where
 
-import Parser.TPDB.SRS.Grammar
-import Parser.TPDB.SRS.Scanner
+import Parser.COPS.SRS.Grammar
+import Parser.COPS.SRS.Scanner
 
 import Text.ParserCombinators.Parsec (Parser(..), many, (<|>), many1, chainl1, sepEndBy)
 import Text.ParserCombinators.Parsec.Prim (GenParser)

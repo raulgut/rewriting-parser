@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.SRS.Scanner
+-- Module      :  Parser.COPS.SRS.Scanner
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 -- 
@@ -8,11 +8,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable 
 --
--- This module manage the scanner options for SRSs in the TPDB
+-- This module manage the scanner options for SRSs in COPS format
 --
 -----------------------------------------------------------------------------
 
-module Parser.TPDB.SRS.Scanner (
+module Parser.COPS.SRS.Scanner (
 
 -- * Exported functions
 

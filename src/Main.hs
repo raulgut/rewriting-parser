@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
--- This is the CSRS Syntax Checker Main Module.
+-- This is the CSRS Syntax Checker Main Module
 --
 -----------------------------------------------------------------------------
 
@@ -22,6 +22,8 @@ main
 
 import Interface.CLI (Opt (..), parseOptions, autoparse)
 
+import System.IO (hPutStrLn, stdout)
+
 -----------------------------------------------------------------------------
 -- Functions
 -----------------------------------------------------------------------------
@@ -31,6 +33,8 @@ import Interface.CLI (Opt (..), parseOptions, autoparse)
 main :: IO ()
 main =
   do (opts, _) <- parseOptions
-     let Opt { optInput = input} = opts
+     let Opt {inputName = filename 
+             ,inputContent = input} = opts
      filedata <- input
-     let trs = autoparse name filedata
+     let trs = autoparse filename filedata
+     hPutStrLn stdout . show $ trs

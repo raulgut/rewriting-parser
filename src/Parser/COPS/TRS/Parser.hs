@@ -1,17 +1,17 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.TRS.Parser
+-- Module      :  Parser.COPS.TRS.Parser
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 --
--- Maintainer  :  jiborra@dsic.upv.es
+-- Maintainer  :  r.gutierrez@upm.es
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
--- This module manage the parser for TRSs in the TPDB
+-- This module manage the parser for TRSs in COPS format
 --
 -----------------------------------------------------------------------------
-module Parser.TPDB.TRS.Parser (
+module Parser.COPS.TRS.Parser (
 
 -- * Exported functions
 
@@ -19,11 +19,11 @@ trsParser, term
 
 ) where
 
-import Parser.TPDB.TRS.Grammar
-import Parser.TPDB.TRS.Scanner
+import Parser.COPS.TRS.Grammar
+import Parser.COPS.TRS.Scanner
 
 import Text.ParserCombinators.Parsec (Parser(..), many, (<|>), many1, sepEndBy
-  , option, char, sepBy)
+  , option, char, sepBy, try)
 import Text.ParserCombinators.Parsec.Prim (GenParser)
 import Control.Monad (liftM)
 
@@ -33,12 +33,12 @@ import Control.Monad (liftM)
 
 -- |parse TRS specification
 trsParser :: Parser Spec
-trsParser = liftM Spec (many1 (whiteSpace >> parens decl))
+trsParser = liftM Spec decl (many1 (whiteSpace >> parens decl))
 
 -- | A declaration is form by a set of variables, a theory, a set of
 -- rules, a strategy an extra information
 decl :: Parser Decl
-decl = declStrategy <|> declCondType <|> declVar <|> declRules  <|> declAny
+decl = declVar <|> declRules <|> declStrategy <|> declCondType <|> declAny
 
 -- | Condition type declaration is formed by a reserved word plus SEMI-EQUATIONAL, JOIN, or ORIENTED
 declCondType :: Parser Decl

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.SRS.Grammar
+-- Module      :  Parser.COPS.SRS.Grammar
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 -- 
@@ -9,11 +9,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable 
 --
--- This module manage the grammar for SRSs in the TPDB
+-- This module manage the grammar for SRSs in COPS format
 --
 -----------------------------------------------------------------------------
 
-module Parser.TPDB.SRS.Grammar (
+module Parser.COPS.SRS.Grammar (
 
 -- * Exported data
 

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.TPDB.TRS.Scanner
+-- Module      :  Parser.COPS.TRS.Scanner
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 --
@@ -8,11 +8,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
--- This module manage the scanner options for TRSs in the TPDB
+-- This module manage the scanner options for TRSs in COPS format
 --
 -----------------------------------------------------------------------------
 
-module Parser.TPDB.TRS.Scanner (
+module Parser.COPS.TRS.Scanner (
 
 -- * Exported functions
 
@@ -21,7 +21,7 @@ lexer, whiteSpace, lexeme, symbol, natural, parens, comma, semi
 
 ) where
 
-import Parser.TPDB.SRS.Scanner (srsDef)
+import Parser.COPS.SRS.Scanner (srsDef)
 
 import Text.ParserCombinators.Parsec (oneOf, CharParser)
 import qualified Text.ParserCombinators.Parsec.Token as P (stringLiteral, reserved, reservedOp, identifier, semi, comma, parens, brackets, natural, symbol, lexeme, whiteSpace, makeTokenParser, TokenParser, caseSensitive, reservedNames, reservedOpNames, opLetter, opStart, identLetter, identStart, nestedComments, commentEnd, commentStart, commentLine, LanguageDef, commaSep)
