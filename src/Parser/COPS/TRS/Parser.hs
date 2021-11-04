@@ -23,7 +23,7 @@ import Parser.COPS.TRS.Grammar
 import Parser.COPS.TRS.Scanner
 
 import Text.ParserCombinators.Parsec (Parser(..), many, (<|>), many1, sepEndBy
-  , option, char, sepBy, try)
+  , option, char, sepBy, try, noneOf, digit)
 import Text.ParserCombinators.Parsec.Prim (GenParser)
 import Control.Monad (liftM)
 
@@ -33,12 +33,12 @@ import Control.Monad (liftM)
 
 -- |parse TRS specification
 trsParser :: Parser Spec
-trsParser = liftM Spec decl (many1 (whiteSpace >> parens decl))
+trsParser = liftM Spec (many1 (whiteSpace >> parens decl))
 
 -- | A declaration is form by a set of variables, a theory, a set of
 -- rules, a strategy an extra information
 decl :: Parser Decl
-decl = declVar <|> declRules <|> declStrategy <|> declCondType <|> declAny
+decl = declVar <|> declRules <|> declStrategy <|> declCondType <|> declComment <|> declSignature
 
 -- | Condition type declaration is formed by a reserved word plus SEMI-EQUATIONAL, JOIN, or ORIENTED
 declCondType :: Parser Decl
@@ -66,16 +66,15 @@ declRules = reserved "RULES" >> liftM Rules (many rule)
 --   variables
 declVar :: Parser Decl
 declVar = reserved "VAR" >> do { idList <- phrase
-                               ; return . Var . map fixId $ idList
+                               ; return . Var $ idList
                                }
 
-fixId = filter (/= '_')
 -- | A term
 term :: Parser Term
 term =
  do n <- identifier
     terms <- option [] (parens (commaSep' term))
-    return (T (fixId n) terms)
+    return (T n terms)
 
 -- | Rule
 rule :: Parser Rule
@@ -103,23 +102,7 @@ cond =
     return (op t1 t2)
 
 -- | Condition options
-condOps = (reservedOp "==" >> return (:==:)) <|>
-          (reservedOp "->*" >> return (::->*)) <|>
-          (reservedOp "->+" >> return (::->+)) <|>
-          (reservedOp "->*<-" >> return (:-><-)) <|>
-          (reservedOp "->" >> return (::->)) <|>
-          (reservedOp "\\->*" >> return (::\->*)) <|>
-          (reservedOp "\\->+" >> return (::\->+)) <|>
-          (reservedOp "\\->*<-/" >> return (:\-><-/)) <|>
-          (reservedOp "\\->" >> return (::\->)) <|>
-          (reservedOp "<-->*" >> return (:<-->*)) <|>
-          (reservedOp "<-->" >> return (:<-->)) <|>
-          (reservedOp "<-/\\->*" >> return (:<-/\->*)) <|>
-          (reservedOp "<-/\\->" >> return (:<-/\->)) <|>
-          (reservedOp "|>=" >> return (:|>=)) <|>
-          (reservedOp "|>" >> return (:|>=)) <|>
-          (reservedOp "->=" >> return (::->=)) <|>
-          (reservedOp "\\->=" >> return (::\->=))
+condOps = (reservedOp "==" >> return (:==:))
 
 -- | A strategy is form by a reserved rule and the strategy
 declStrategy :: Parser Decl
@@ -145,26 +128,10 @@ ctx =
     return $ Context strats
 
 -- | Extra information
-declAny =
- do name <- identifier
-    decls <- many anyContent
-    return$ Any (Just name) decls
-
--- | Extra information set
-anyContent :: Parser AnyContent
-anyContent = anyI <|> anyS <|> anyA <|> (comma >> anyContent)
-
--- | Identifiers
-anyI :: Parser AnyContent
-anyI = liftM AnyI identifier
-
--- | Strings
-anyS :: Parser AnyContent
-anyS = liftM AnyS stringLiteral
-
--- | Others
-anyA :: Parser AnyContent
-anyA = liftM AnyA (parens$ many anyContent)
+declComment =
+ do reserved "COMMENT"
+    decls <- many $ noneOf ")"
+    return$ Comment decls
 
 -- | A phrase
 phrase = many identifier
@@ -178,3 +145,14 @@ commaSep' = (`sepEndBy` comma)
 semicolonSep' :: Text.ParserCombinators.Parsec.Prim.GenParser Char () a
              -> Text.ParserCombinators.Parsec.Prim.GenParser Char () [a]
 semicolonSep' = (`sepBy` semi)
+
+-- | Signature declaration is formed by list of functions with arity
+declSignature :: Parser Decl
+declSignature = reserved "SIG" >> liftM Signature (many (parens fun))
+
+-- | Function symbol
+fun :: Parser (Id,Int)
+fun =
+ do n <- identifier
+    m <- many1 digit
+    return (n,read m)
