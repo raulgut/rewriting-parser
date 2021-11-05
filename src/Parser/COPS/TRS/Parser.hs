@@ -38,7 +38,7 @@ trsParser = liftM Spec (many1 (whiteSpace >> parens decl))
 -- | A declaration is form by a set of variables, a theory, a set of
 -- rules, a strategy an extra information
 decl :: Parser Decl
-decl = declVar <|> declRules <|> declStrategy <|> declCondType <|> declComment <|> declSignature
+decl = declCondType <|> declVar <|> declSignature <|> declCSStrategy <|> declRules <|> declComment
 
 -- | Condition type declaration is formed by a reserved word plus SEMI-EQUATIONAL, JOIN, or ORIENTED
 declCondType :: Parser Decl
@@ -104,25 +104,12 @@ cond =
 -- | Condition options
 condOps = (reservedOp "==" >> return (:==:))
 
--- | A strategy is form by a reserved rule and the strategy
-declStrategy :: Parser Decl
-declStrategy =
- do reserved "STRATEGY" >> liftM Strategy (inn <|> out <|> ctx)
-
--- | Innermost strategy
-inn :: Parser Strategy
-inn = reserved "INNERMOST" >> return InnerMost
-
--- | Outermost strategy
-out :: Parser Strategy
-out = reserved "OUTERMOST" >> return OuterMost
-
 -- | Context-sensitive strategy
-ctx :: Parser Strategy
-ctx =
- do reserved "CONTEXTSENSITIVE"
+declCSStrategy :: Parser Decl
+declCSStrategy =
+ do reserved "REPLACEMENT-MAP"
     strats <- many$ parens (do a <- identifier
-                               b <- many natural
+                               b <- commaSep' natural
                                return (a, map fromInteger b)
                            )
     return $ Context strats

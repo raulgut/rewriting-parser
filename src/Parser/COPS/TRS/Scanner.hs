@@ -21,26 +21,34 @@ lexer, whiteSpace, lexeme, symbol, natural, parens, comma, semi
 
 ) where
 
-import Parser.COPS.SRS.Scanner (srsDef)
-
-import Text.ParserCombinators.Parsec (oneOf, CharParser)
+import Text.ParserCombinators.Parsec (oneOf, CharParser, (<|>), alphaNum)
 import qualified Text.ParserCombinators.Parsec.Token as P (stringLiteral, reserved, reservedOp, identifier, semi, comma, parens, brackets, natural, symbol, lexeme, whiteSpace, makeTokenParser, TokenParser, caseSensitive, reservedNames, reservedOpNames, opLetter, opStart, identLetter, identStart, nestedComments, commentEnd, commentStart, commentLine, LanguageDef, commaSep)
-import Text.ParserCombinators.Parsec.Language( haskellStyle, emptyDef)
+import Text.ParserCombinators.Parsec.Language(haskellStyle, emptyDef)
 
 -----------------------------------------------------------------------------
 -- Functions
 -----------------------------------------------------------------------------
 
--- | Create lexer using 'srsDef' definition.
-lexer :: P.TokenParser ()
-lexer = P.makeTokenParser $
-         srsDef {
-     P.opLetter = oneOf ")(\",><="
-   , P.reservedNames= ["RULES", "VAR","ORIENTED","SEMI-EQUATIONAL","JOIN"
-     ,"CONDITION", "STRATEGY","INNERMOST","OUTERMOST", "CONTEXTSENSITIVE"]
-   , P.reservedOpNames = ["->","->*","->+","==","->*<-","|>=","<-->","<-->*","\\->","\\->*","\\->+","==","\\->*<-/","|>","<-/\\->","<-/\\->*"]
+-- | Parsec list of reserved symbols
+trsDef :: P.LanguageDef st
+trsDef = emptyDef {
+     P.commentStart = ""
+   , P.commentEnd = ""
+   , P.commentLine = ""
+   , P.nestedComments = True
+   , P.identStart = alphaNum <|> oneOf "<>~!\\·$%&/.:;-_{}[]^*+ç¡'¿?=#@|"
+   , P.identLetter = P.identStart trsDef
+   , P.opStart = oneOf ")(\"-"
+   , P.opLetter = oneOf ")(\",><="
+   , P.reservedNames= [ "RULES", "VAR", "ORIENTED", "SEMI-EQUATIONAL", "JOIN" , "CONDITIONTYPE"
+                      , "REPLACEMENT-MAP", "COMMENT"]
+   , P.reservedOpNames = ["->","=="]
    , P.caseSensitive = True
    }
+
+-- | Create lexer using 'srsDef' definition.
+lexer :: P.TokenParser ()
+lexer = P.makeTokenParser $ trsDef
 
 -- | white Space
 whiteSpace :: CharParser () ()

@@ -21,9 +21,6 @@ Executable csrs-check
   other-modules: 
     Interface.CLI
     Parser.COPS.Parser
-    Parser.COPS.SRS.Grammar
-    Parser.COPS.SRS.Parser
-    Parser.COPS.SRS.Scanner
     Parser.COPS.TRS.Grammar
     Parser.COPS.TRS.Parser
     Parser.COPS.TRS.Scanner
