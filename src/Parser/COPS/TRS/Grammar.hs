@@ -31,6 +31,7 @@ import Data.Typeable
 import Data.Generics
 import Data.Map (Map)
 import Data.Set (Set)
+import Data.List (intersperse)
 
 -----------------------------------------------------------------------------
 -- Data
@@ -63,7 +64,7 @@ data Rule = Rule SimpleRule [Equation] -- ^ Conditional rewriting rule
 
 -- | Term declaration
 data Term = T Id [Term] -- ^ Term
-            deriving (Eq, Show, Data, Typeable)
+            deriving (Eq, Data, Typeable)
 
 -- | Condition Type
 data CondType =
@@ -90,6 +91,16 @@ data TRS
         , trsRules :: [Rule]
         , trsType :: TRSType
         } deriving (Show)
+
+-----------------------------------------------------------------------------
+-- Instances
+-----------------------------------------------------------------------------
+
+-- Show
+
+instance Show Term where
+    show (T f []) = f 
+    show (T f terms) = f ++ "(" ++ (concat . intersperse "," . map show $ terms) ++ ")" 
 
 -----------------------------------------------------------------------------
 -- Functions

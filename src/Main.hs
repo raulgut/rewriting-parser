@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 --------------------------------------------------------------------------
 -- |
 -- Module      :  Main
@@ -22,7 +23,7 @@ main
 
 import Interface.CLI (Opt (..), parseOptions, autoparse)
 
-import System.IO (hPutStrLn, stdout)
+import System.IO (hPutStr, stdout)
 
 -----------------------------------------------------------------------------
 -- Functions
@@ -36,5 +37,5 @@ main =
      let Opt {inputName = filename 
              ,inputContent = input} = opts
      filedata <- input
-     let trs = autoparse filename filedata
-     hPutStrLn stdout . show $ trs
+     let !trs = autoparse filename filedata
+     hPutStr stdout ""
