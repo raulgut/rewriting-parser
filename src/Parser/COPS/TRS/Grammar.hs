@@ -18,12 +18,19 @@ module Parser.COPS.TRS.Grammar (
 -- * Exported data
 
 Spec(..), Decl(..), Equation (..), SimpleRule (..)
-, Rule(..), Term (..), Id, CondType (..)
+, Rule(..), Term (..), Id, CondType (..), TRSType (..)
+, TRS (..)
+
+-- * Exported functions
+
+, getTerms
 
 ) where
 
 import Data.Typeable
 import Data.Generics
+import Data.Map (Map)
+import Data.Set (Set)
 
 -----------------------------------------------------------------------------
 -- Data
@@ -36,7 +43,7 @@ data Spec = Spec [Decl] -- ^ List of declarations
 -- | List of declarations
 data Decl = CType CondType -- ^ Type of conditional rules
    | Var [Id] -- ^ Set of variables
-   | Signature [(Id,Int)] -- ^ Extended signature
+--   | Signature [(Id,Int)] -- ^ Extended signature
    | Rules [Rule] -- ^ Set of rules
    | Context [(Id, [Int])] -- ^ Context-Sensitive strategy
    | Comment String -- ^ Extra information
@@ -67,3 +74,31 @@ data CondType =
 
 -- | Identifier
 type Id = String
+
+-- | TSR Type
+data TRSType = TRSStandard
+  | TRSConditional CondType
+  | TRSContextSensitive 
+  | TRSContextSensitiveConditional CondType
+  deriving (Show)
+
+-- | Term Rewriting Systems (TRS, CTRS, CSTRS, CSCTRS)
+data TRS 
+  = TRS { trsSignature :: Map Id Int
+        , trsVariables :: Set Id
+        , trsRMap :: [(Id, [Int])]
+        , trsRules :: [Rule]
+        , trsType :: TRSType
+        } deriving (Show)
+
+-----------------------------------------------------------------------------
+-- Functions
+-----------------------------------------------------------------------------
+
+-- | get all the terms from a rule
+getTerms :: Rule -> [Term]
+getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
+
+-- | get all the terms from a equation
+getTermsEq :: Equation -> [Term]
+getTermsEq (l :==: r) = [l,r]

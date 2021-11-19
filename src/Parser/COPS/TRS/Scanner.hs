@@ -41,7 +41,7 @@ trsDef = emptyDef {
    , P.opStart = oneOf ")(\"-"
    , P.opLetter = oneOf ")(\",><="
    , P.reservedNames= [ "RULES", "VAR", "ORIENTED", "SEMI-EQUATIONAL", "JOIN" , "CONDITIONTYPE"
-                      , "REPLACEMENT-MAP", "COMMENT"]
+                      , "REPLACEMENT-MAP", "COMMENT" {-- , "SIG" --}]
    , P.reservedOpNames = ["->","=="]
    , P.caseSensitive = True
    }

@@ -31,7 +31,7 @@ Opt(..)
 ) where
 
 import Parser.COPS.Parser (parseCOPS)
-import Parser.COPS.TRS.Grammar (Spec)
+import Parser.COPS.TRS.Grammar (TRS)
 import System.Environment (getProgName, getArgs)
 import System.Exit (ExitCode(ExitSuccess,ExitFailure), exitWith, exitFailure)
 import System.IO (hPutStrLn, stderr, hFlush)
@@ -111,11 +111,11 @@ parseOptions = do (optsActions, rest, errors) <- getArgs
                   return (opts, rest)
 
 -- | File extensions
-fileExtensions :: [(String, String -> Either ParseError Spec)]
+fileExtensions :: [(String, String -> Either ParseError TRS)]
 fileExtensions = [(".trs", parseCOPS)]
 
 -- | Parse file into a TRS
-autoparse :: String -> String -> Spec
+autoparse :: String -> String -> TRS
 autoparse fname = maybe (error "Error (CLI): File Extension not supported")
                         parseWithFailure
                         matchParser

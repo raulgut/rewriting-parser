@@ -24,7 +24,7 @@ Executable csrs-check
     Parser.COPS.TRS.Grammar
     Parser.COPS.TRS.Parser
     Parser.COPS.TRS.Scanner
-  build-depends: 	base > 4, pretty, parsec, syb
+  build-depends: 	base > 4, pretty, parsec, syb, containers, mtl
   hs-source-dirs: 	src
   ghc-options: -O2 -threaded
   extensions: 

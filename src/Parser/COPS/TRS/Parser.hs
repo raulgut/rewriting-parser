@@ -38,7 +38,7 @@ trsParser = liftM Spec (many1 (whiteSpace >> parens decl))
 -- | A declaration is form by a set of variables, a theory, a set of
 -- rules, a strategy an extra information
 decl :: Parser Decl
-decl = declCondType <|> declVar <|> declSignature <|> declCSStrategy <|> declRules <|> declComment
+decl = declCondType <|> declVar <|> {-- declSignature <|> --} declCSStrategy <|> declRules <|> declComment
 
 -- | Condition type declaration is formed by a reserved word plus SEMI-EQUATIONAL, JOIN, or ORIENTED
 declCondType :: Parser Decl
@@ -133,7 +133,7 @@ semicolonSep' :: Text.ParserCombinators.Parsec.Prim.GenParser Char () a
              -> Text.ParserCombinators.Parsec.Prim.GenParser Char () [a]
 semicolonSep' = (`sepBy` semi)
 
--- | Signature declaration is formed by list of functions with arity
+{-- | Signature declaration is formed by list of functions with arity
 declSignature :: Parser Decl
 declSignature = reserved "SIG" >> liftM Signature (many (parens fun))
 
@@ -143,3 +143,4 @@ fun =
  do n <- identifier
     m <- many1 digit
     return (n,read m)
+--}
