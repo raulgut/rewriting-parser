@@ -1,5 +1,5 @@
 (VAR X Y)
-(STRATEGY CONTEXTSENSITIVE
+(REPLACEMENT-MAP
 (from 1)
 (length)
 (length1)
