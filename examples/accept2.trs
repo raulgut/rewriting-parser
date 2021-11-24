@@ -1,0 +1,10 @@
+(CONDITIONTYPE ORIENTED)
+(VAR x)
+(REPLACEMENT-MAP (f 1) (g 1))
+(RULES
+   f(x) -> x
+)
+(COMMENT
+The checker complains "g" but the document says that fresh function symbols
+may be declared in REPLACEMENT-MAP.
+)

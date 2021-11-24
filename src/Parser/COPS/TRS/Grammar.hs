@@ -5,7 +5,7 @@
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 --
--- Maintainer  :  jiborra@dsic.upv.es
+-- Maintainer  :  r.gutierrez@upm.es
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
@@ -23,14 +23,14 @@ Spec(..), Decl(..), Equation (..), SimpleRule (..)
 
 -- * Exported functions
 
-, getTerms
+, getTerms, nonVarLHS
 
 ) where
 
 import Data.Typeable
 import Data.Generics
 import Data.Map (Map)
-import Data.Set (Set)
+import Data.Set (Set, member)
 import Data.List (intersperse)
 
 -----------------------------------------------------------------------------
@@ -52,15 +52,15 @@ data Decl = CType CondType -- ^ Type of conditional rules
 
 -- | Equation declaration
 data Equation = Term :==: Term -- ^ Equation
-              deriving (Eq, Show, Data, Typeable)
+              deriving (Eq, Data, Typeable)
 
 -- | Simple rule declaration
 data SimpleRule = Term :-> Term -- ^ Rewriting rule
-     deriving (Eq, Show, Data, Typeable)
+     deriving (Eq, Data, Typeable)
 
 -- | Rule declaration
 data Rule = Rule SimpleRule [Equation] -- ^ Conditional rewriting rule
-            deriving (Eq, Show, Data, Typeable)
+            deriving (Eq, Data, Typeable)
 
 -- | Term declaration
 data Term = T Id [Term] -- ^ Term
@@ -98,6 +98,16 @@ data TRS
 
 -- Show
 
+instance Show Equation where
+  show (t1 :==: t2) = show t1 ++ " == " ++ show t2
+
+instance Show SimpleRule where 
+  show (t1 :-> t2) = show t1 ++ " -> " ++ show t2
+
+instance Show Rule where 
+  show (Rule r []) = show r
+  show (Rule r eqs) = show r ++ " | " ++ (concat . intersperse ", " . map show $ eqs)
+
 instance Show Term where
     show (T f []) = f 
     show (T f terms) = f ++ "(" ++ (concat . intersperse "," . map show $ terms) ++ ")" 
@@ -106,10 +116,14 @@ instance Show Term where
 -- Functions
 -----------------------------------------------------------------------------
 
--- | get all the terms from a rule
+-- | gets all the terms from a rule
 getTerms :: Rule -> [Term]
 getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
 
--- | get all the terms from a equation
+-- | gets all the terms from a equation
 getTermsEq :: Equation -> [Term]
 getTermsEq (l :==: r) = [l,r]
+
+-- | checks if the lhs is non-variable
+nonVarLHS :: Rule -> Set Id -> Bool
+nonVarLHS (Rule ((T idt _) :-> r) eqs) vs = not . member idt $ vs 

@@ -1,0 +1,9 @@
+(VAR x y)
+(REPLACEMENT-MAP (f 1))
+(RULES
+   f(x) -> y
+)
+(COMMENT
+It might be better to reject CSRSs containing extra-variables, although
+CSCRSs should accept them.
+)

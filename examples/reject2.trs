@@ -1,0 +1,15 @@
+(CONDITIONTYPE ORIENTED)
+(VAR x)
+(REPLACEMENT-MAP (f 1))
+(RULES
+   f(x) -> ->
+)
+(COMMENT
+It would be nice if the checker could output an error message without
+an exception; like this:
+
+File 'reject2.trs' at line 6, character 12:
+   f(x) -> ->
+           ^
+)
+

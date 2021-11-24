@@ -1,0 +1,8 @@
+(VAR x)
+(REPLACEMENT-MAP (f 1))
+(RULES
+   x -> f(x)
+)
+(COMMENT
+It might be better to reject variable left-hand sides.
+)

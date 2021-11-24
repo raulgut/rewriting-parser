@@ -23,14 +23,14 @@ parseCOPS
 
 import Parser.COPS.TRS.Parser (trsParser)
 import Parser.COPS.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), Id, TRSType (..), getTerms)
+  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS)
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
 import Text.Parsec.Pos (newPos)
 import Data.Map as M (empty, lookup, insert)
 import Data.Set as S (empty, fromList, member)
-import Data.List (sort)
+import Data.List (sort, nub)
 import Control.Monad.State (State, evalState, get, put)
 
 -----------------------------------------------------------------------------
@@ -100,11 +100,18 @@ checkWellFormed (Var vs:rest) = do { myTRS <- get
                                    ; checkWellFormed rest
                                    }
 checkWellFormed (Context rmap:rest) = do { myTRS <- get 
-                                         ; put $ myTRS { trsRMap = rmap
-                                                       , trsType = case trsType myTRS of
-                                                                     TRSStandard -> TRSContextSensitive
-                                                                     TRSConditional typ -> TRSContextSensitiveConditional typ}
-                                         ; checkWellFormed rest}
+                                         ; if (length . nub . map fst $ rmap) == length rmap then
+                                             do { put $ myTRS { trsRMap = rmap
+                                                              , trsType 
+                                                                  = case trsType myTRS of
+                                                                      TRSStandard -> TRSContextSensitive
+                                                                      TRSConditional typ -> TRSContextSensitiveConditional typ
+                                                              }
+                                                ; checkWellFormed rest
+                                                }
+                                           else 
+                                             return . Left $ newErrorMessage (UnExpect $ "duplicated symbols in replacement map declaration") (newPos "" 0 0)
+                                         }
 checkWellFormed (Rules rs:rest) = do { result <- checkRules rs
                                      ; case result of
                                          Left parseError -> return . Left $ parseError
@@ -113,6 +120,7 @@ checkWellFormed (Rules rs:rest) = do { result <- checkRules rs
                                                        ; checkWellFormed rest
                                                        }
                                      }
+checkWellFormed (Comment _:rest) = checkWellFormed rest
 
 -- | Checks if the rules are well-formed wrt the extracted signature
 checkRules :: [Rule] -> State TRS (Either ParseError ())
@@ -123,10 +131,15 @@ checkRules [] = do { myTRS <- get
                        TRSContextSensitiveConditional _ -> checkRMap . trsRMap $ myTRS
                        _ -> return . Right $ ()
                    }
-checkRules (r:rs) = do { result <- checkTerms . getTerms $ r 
-                       ; case result of
-                           Left parseError -> return . Left $ parseError 
-                           Right _ -> checkRules rs
+checkRules (r:rs) = do { myTRS <- get
+                       ; if nonVarLHS r (trsVariables myTRS) then 
+                           do { result <- checkTerms . getTerms $ r 
+                              ; case result of
+                                  Left parseError -> return . Left $ parseError 
+                                  Right _ -> checkRules rs
+                              }
+                         else
+                           return . Left $ newErrorMessage (UnExpect $ "variable in the left-hand side of the rule " ++ (show r)) (newPos "" 0 0)
                        }
 
 -- | Checks if the terms are well-formed wrt the extracted signature

@@ -1,0 +1,12 @@
+(VAR x y)
+(REPLACEMENT-MAP
+  (f 1)
+  (f 2)
+)
+(RULES
+   f(x,y) -> y
+)
+(COMMENT
+  The ducument says that function symbols may appear only once in
+  (REPLACEMENT-MAP cslist)
+)

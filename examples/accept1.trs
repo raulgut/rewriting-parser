@@ -1,0 +1,13 @@
+(CONDITIONTYPE ORIENTED)
+(VAR x)
+(REPLACEMENT-MAP (f 1))
+(RULES
+   f(x) -> x
+)
+(COMMENT
+The COMMENT field needs to be supported.
+
+doi:12.3456/ABC1234ED_abc(1)
+[1] Example 1
+submitted by: Abc Def
+)
