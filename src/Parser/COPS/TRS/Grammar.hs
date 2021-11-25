@@ -23,14 +23,14 @@ Spec(..), Decl(..), Equation (..), SimpleRule (..)
 
 -- * Exported functions
 
-, getTerms, nonVarLHS
+, getTerms, nonVarLHS, isCRule, hasExtraVars
 
 ) where
 
 import Data.Typeable
 import Data.Generics
 import Data.Map (Map)
-import Data.Set (Set, member)
+import Data.Set as S (Set, member, unions, insert, (\\), null)
 import Data.List (intersperse)
 
 -----------------------------------------------------------------------------
@@ -117,6 +117,14 @@ instance Show Term where
 -----------------------------------------------------------------------------
 
 -- | gets all the terms from a rule
+getVars :: Set Id -> Term -> Set Id
+getVars vs (T idt ts) = let tsVars = unions . map (getVars vs) $ ts
+                        in if member idt vs then
+                             insert idt tsVars 
+                           else 
+                             tsVars
+
+-- | gets all the terms from a rule
 getTerms :: Rule -> [Term]
 getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
 
@@ -125,5 +133,15 @@ getTermsEq :: Equation -> [Term]
 getTermsEq (l :==: r) = [l,r]
 
 -- | checks if the lhs is non-variable
-nonVarLHS :: Rule -> Set Id -> Bool
-nonVarLHS (Rule ((T idt _) :-> r) eqs) vs = not . member idt $ vs 
+nonVarLHS :: Set Id -> Rule -> Bool
+nonVarLHS vs (Rule ((T idt _) :-> r) eqs) = not . member idt $ vs 
+
+-- | checks if the rule is conditional
+isCRule :: Rule -> Bool
+isCRule (Rule _ []) = False 
+isCRule _ = True 
+
+-- | checks if the non-conditional rule has extra variables
+hasExtraVars :: Set Id -> Rule -> Bool
+hasExtraVars vs (Rule (l :-> r) []) = not . S.null $ getVars vs r \\ getVars vs l
+hasExtraVars _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"

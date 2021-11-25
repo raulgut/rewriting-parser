@@ -23,7 +23,7 @@ parseCOPS
 
 import Parser.COPS.TRS.Parser (trsParser)
 import Parser.COPS.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS)
+  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars)
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -132,12 +132,16 @@ checkRules [] = do { myTRS <- get
                        _ -> return . Right $ ()
                    }
 checkRules (r:rs) = do { myTRS <- get
-                       ; if nonVarLHS r (trsVariables myTRS) then 
-                           do { result <- checkTerms . getTerms $ r 
-                              ; case result of
-                                  Left parseError -> return . Left $ parseError 
-                                  Right _ -> checkRules rs
-                              }
+                       ; let vs = trsVariables myTRS
+                       ; if nonVarLHS vs r then -- lhs is non-variable 
+                           if isCRule r || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
+                             do { result <- checkTerms . getTerms $ r 
+                                ; case result of
+                                    Left parseError -> return . Left $ parseError 
+                                    Right _ -> checkRules rs
+                                }
+                           else
+                           return . Left $ newErrorMessage (UnExpect $ "extra variables in the rule " ++ (show r)) (newPos "" 0 0)
                          else
                            return . Left $ newErrorMessage (UnExpect $ "variable in the left-hand side of the rule " ++ (show r)) (newPos "" 0 0)
                        }
