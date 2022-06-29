@@ -23,7 +23,8 @@ parseCOPS
 
 import Parser.COPS.TRS.Parser (trsParser)
 import Parser.COPS.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars)
+  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars
+  , isTRSConditional)
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -134,7 +135,7 @@ checkRules [] = do { myTRS <- get
 checkRules (r:rs) = do { myTRS <- get
                        ; let vs = trsVariables myTRS
                        ; if nonVarLHS vs r then -- lhs is non-variable 
-                           if isCRule r || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
+                           if isTRSConditional myTRS || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
                              do { result <- checkTerms . getTerms $ r 
                                 ; case result of
                                     Left parseError -> return . Left $ parseError 

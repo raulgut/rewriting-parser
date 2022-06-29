@@ -23,7 +23,7 @@ Spec(..), Decl(..), Equation (..), SimpleRule (..)
 
 -- * Exported functions
 
-, getTerms, nonVarLHS, isCRule, hasExtraVars
+, getTerms, nonVarLHS, isCRule, hasExtraVars, isTRSConditional
 
 ) where
 
@@ -145,3 +145,10 @@ isCRule _ = True
 hasExtraVars :: Set Id -> Rule -> Bool
 hasExtraVars vs (Rule (l :-> r) []) = not . S.null $ getVars vs r \\ getVars vs l
 hasExtraVars _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"
+
+-- | isTRSConditional checks if CONDITIONTYPE has been set
+isTRSConditional :: TRS -> Bool
+isTRSConditional trs = case trsType trs of 
+                         TRSConditional _ -> True 
+                         TRSContextSensitiveConditional _ -> True
+                         _ -> False
