@@ -134,14 +134,17 @@ checkRules [] = do { myTRS <- get
 checkRules (r:rs) = do { myTRS <- get
                        ; let vs = trsVariables myTRS
                        ; if nonVarLHS vs r then -- lhs is non-variable 
-                           if isCRule r || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
-                             do { result <- checkTerms . getTerms $ r 
-                                ; case result of
-                                    Left parseError -> return . Left $ parseError 
-                                    Right _ -> checkRules rs
-                                }
+                           if (isTRSConditional myTRS) || (not . isCRule $ r) then -- conditional rules not allowed in TRSs 
+                             if isTRSConditional myTRS || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
+                               do { result <- checkTerms . getTerms $ r 
+                                  ; case result of
+                                      Left parseError -> return . Left $ parseError 
+                                      Right _ -> checkRules rs
+                                  }
+                             else
+                               return . Left $ newErrorMessage (UnExpect $ "extra variables in the rule " ++ (show r)) (newPos "" 0 0)
                            else
-                           return . Left $ newErrorMessage (UnExpect $ "extra variables in the rule " ++ (show r)) (newPos "" 0 0)
+                             return . Left $ newErrorMessage (UnExpect $ "conditional rule: " ++ (show r) ++ ", CONDITIONTYPE is missing") (newPos "" 0 0)
                          else
                            return . Left $ newErrorMessage (UnExpect $ "variable in the left-hand side of the rule " ++ (show r)) (newPos "" 0 0)
                        }
