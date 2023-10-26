@@ -1,5 +1,5 @@
 name:	csrs-syntax-checker
-version: 	0.1
+version: 	0.2
 cabal-version:	>= 1.2
 description: 	A tool for checking CS-TRSs and CS-CTRSs format 
 license: 	AllRightsReserved
@@ -20,10 +20,13 @@ Executable csrs-check
   main-is: Main.hs
   other-modules: 
     Interface.CLI
+    Parser.TRS.Grammar
     Parser.COPS.Parser
-    Parser.COPS.TRS.Grammar
     Parser.COPS.TRS.Parser
     Parser.COPS.TRS.Scanner
+    Parser.ARI.Parser
+    Parser.ARI.TRS.Parser
+    Parser.ARI.TRS.Scanner
   build-depends: 	base > 4, pretty, parsec, syb, containers, mtl
   hs-source-dirs: 	src
   ghc-options: -O2 -threaded

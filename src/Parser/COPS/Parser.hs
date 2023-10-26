@@ -22,7 +22,7 @@ parseCOPS
 )  where
 
 import Parser.COPS.TRS.Parser (trsParser)
-import Parser.COPS.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
+import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
   , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars)
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)

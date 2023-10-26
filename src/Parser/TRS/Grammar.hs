@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Parser.COPS.TRS.Grammar
+-- Module      :  Parser.TRS.Grammar
 -- Copyright   :  (c) muterm development team
 -- License     :  see LICENSE
 --
@@ -9,11 +10,11 @@
 -- Stability   :  unstable
 -- Portability :  non-portable
 --
--- This module manage the grammar for TRSs in COPS
+-- This module manage the grammar for TRSs
 --
 -----------------------------------------------------------------------------
 
-module Parser.COPS.TRS.Grammar (
+module Parser.TRS.Grammar (
 
 -- * Exported data
 
@@ -23,15 +24,18 @@ Spec(..), Decl(..), Equation (..), SimpleRule (..)
 
 -- * Exported functions
 
-, getTerms, nonVarLHS, isCRule, hasExtraVars
+, getTerms, nonVarLHS, nonVarLHS', isCRule, hasExtraVars, hasExtraVars'
+, isCanonical
 
 ) where
 
 import Data.Typeable
 import Data.Generics
-import Data.Map (Map)
-import Data.Set as S (Set, member, unions, insert, (\\), null)
+import Data.Map as M (Map, lookup, insertWith, empty)
+import Data.Set as S (Set, member, unions, insert, (\\), null, union, fromList)
 import Data.List (intersperse)
+import Data.Maybe (isNothing)
+import Control.Monad.State (MonadState (..), execState)
 
 -----------------------------------------------------------------------------
 -- Data
@@ -44,10 +48,11 @@ data Spec = Spec [Decl] -- ^ List of declarations
 -- | List of declarations
 data Decl = CType CondType -- ^ Type of conditional rules
    | Var [Id] -- ^ Set of variables
---   | Signature [(Id,Int)] -- ^ Extended signature
+   | Signature [(Id,Int)] -- ^ Extended signature
    | Rules [Rule] -- ^ Set of rules
    | Context [(Id, [Int])] -- ^ Context-Sensitive strategy
    | Comment String -- ^ Extra information
+   | Format TRSType
      deriving (Eq, Show, Data, Typeable)
 
 -- | Equation declaration
@@ -81,7 +86,7 @@ data TRSType = TRSStandard
   | TRSConditional CondType
   | TRSContextSensitive 
   | TRSContextSensitiveConditional CondType
-  deriving (Show)
+  deriving (Show, Eq, Data)
 
 -- | Term Rewriting Systems (TRS, CTRS, CSTRS, CSCTRS)
 data TRS 
@@ -125,6 +130,14 @@ getVars vs (T idt ts) = let tsVars = unions . map (getVars vs) $ ts
                              tsVars
 
 -- | gets all the terms from a rule
+getVars' :: Map Id Int -> Term -> Set Id
+getVars' fs (T idt ts) = let tsVars = unions . map (getVars' fs) $ ts
+                        in if isNothing $ M.lookup idt fs then
+                             insert idt tsVars 
+                           else 
+                             tsVars
+
+-- | gets all the terms from a rule
 getTerms :: Rule -> [Term]
 getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
 
@@ -136,6 +149,11 @@ getTermsEq (l :==: r) = [l,r]
 nonVarLHS :: Set Id -> Rule -> Bool
 nonVarLHS vs (Rule ((T idt _) :-> r) eqs) = not . member idt $ vs 
 
+-- | checks if the lhs is non-variable
+nonVarLHS' :: Map Id Int -> Rule -> Bool
+nonVarLHS' fs (Rule ((T idt _) :-> r) eqs) = not . isNothing . M.lookup idt $ fs
+                                                
+
 -- | checks if the rule is conditional
 isCRule :: Rule -> Bool
 isCRule (Rule _ []) = False 
@@ -145,3 +163,49 @@ isCRule _ = True
 hasExtraVars :: Set Id -> Rule -> Bool
 hasExtraVars vs (Rule (l :-> r) []) = not . S.null $ getVars vs r \\ getVars vs l
 hasExtraVars _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"
+
+-- | checks if the non-conditional rule has extra variables
+hasExtraVars' :: Map Id Int -> Rule -> Bool
+hasExtraVars' fs (Rule (l :-> r) []) = not . S.null $ getVars' fs r \\ getVars' fs l
+hasExtraVars' _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"
+
+-- | Extract canonical replacement map
+extractCanonicalRepMap :: (MonadState (Map Id (Set Int)) m) => TRS -> m ()
+extractCanonicalRepMap trs = do a <- sequence . Prelude.map (extractCanonicalRepMapRule trs) . trsRules $ trs
+                                return ()
+
+-- | Extract canonical replacement map from rule
+extractCanonicalRepMapRule :: (MonadState (Map Id (Set Int)) m) => TRS -> Rule -> m ()
+extractCanonicalRepMapRule trs (Rule (l :-> _) _) = extractCanonicalRepMapTerm trs l
+
+-- | Extract canonical replacement map from term
+extractCanonicalRepMapTerm :: (MonadState (Map Id (Set Int)) m) => TRS -> Term -> m ()
+extractCanonicalRepMapTerm trs (T f tt) 
+  = do a <- sequence . map (extractCanonicalRepMapTerm trs) . filter (not . isVTerm) $ tt
+       mapping <- get
+       let mapping' = M.insertWith (S.union) f compf' mapping
+       put mapping'
+       return ()
+    where
+      sig = trsSignature trs
+      arity = case M.lookup f sig of 
+                Just ar -> ar 
+                Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n" 
+      isVTerm (T v _) = isNothing $ M.lookup v sig  
+      compf' = S.fromList [i | i <- [1..arity], not . isVTerm $ (tt!!(i - 1))]
+
+-- | Checks if the replacement map of the TRS is canonical
+isCanonical :: TRS -> Bool
+isCanonical trs =
+  let repmap = execState (extractCanonicalRepMap trs) (M.empty)
+  in not . and . map (checkCanonical trs repmap) . trsRMap $ trs
+
+-- | Checks if the replamcement map of the symbol is canonical
+checkCanonical :: TRS -> Map Id (Set Int) -> (Id,[Int]) -> Bool
+checkCanonical trs rMap (f,rMapL) 
+  = case M.lookup f rMap of
+      Nothing -> let ar = trsSignature trs
+                 in case M.lookup f ar of 
+                      Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n"
+                      Just arity -> (S.fromList [1..arity]) == (S.fromList rMapL)
+      Just rMapS -> rMapS == (S.fromList rMapL)

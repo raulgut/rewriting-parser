@@ -19,7 +19,7 @@ trsParser, term
 
 ) where
 
-import Parser.COPS.TRS.Grammar
+import Parser.TRS.Grammar
 import Parser.COPS.TRS.Scanner
 
 import Text.ParserCombinators.Parsec (Parser(..), many, (<|>), many1, sepEndBy

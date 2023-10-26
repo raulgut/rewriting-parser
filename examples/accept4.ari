@@ -1,0 +1,5 @@
+(format CSCTRS oriented) 
+(fun f 1 :replacement-map (1)) 
+(fun g 1 :replacement-map ()) 
+(fun h 1)
+(rule (f x) (f y) (= (g x) z) (= (g z) (h y)))

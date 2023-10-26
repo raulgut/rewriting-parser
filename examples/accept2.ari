@@ -1,0 +1,5 @@
+(format CTRS oriented) 
+(fun f 1) 
+(fun g 1) 
+(fun h 1) 
+(rule (f x) (f y) (= (g x) z) (= (g z) (h y)))

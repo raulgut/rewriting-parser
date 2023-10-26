@@ -21,8 +21,9 @@ main
 
 ) where
 
-import Interface.CLI (Opt (..), parseOptions, autoparse)
+import Parser.TRS.Grammar (isCanonical)
 
+import Interface.CLI (Opt (..), parseOptions, autoparse)
 import System.IO (hPutStr, stdout)
 
 -----------------------------------------------------------------------------
@@ -34,8 +35,12 @@ import System.IO (hPutStr, stdout)
 main :: IO ()
 main =
   do (opts, _) <- parseOptions
-     let Opt {inputName = filename 
-             ,inputContent = input} = opts
+     let Opt { inputName = filename 
+             , inputContent = input
+             , optCanonical = canonical } = opts
      filedata <- input
      let !trs = autoparse filename filedata
-     hPutStr stdout ""
+     if canonical && (isCanonical trs) then
+       hPutStr stdout "The replacement map is not canonical!\n"
+      else
+        hPutStr stdout ""

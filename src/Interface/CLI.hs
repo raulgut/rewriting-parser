@@ -30,8 +30,9 @@ Opt(..)
 
 ) where
 
+import Parser.TRS.Grammar (TRS)
 import Parser.COPS.Parser (parseCOPS)
-import Parser.COPS.TRS.Grammar (TRS)
+import Parser.ARI.Parser (parseARI)
 import System.Environment (getProgName, getArgs)
 import System.Exit (ExitCode(ExitSuccess,ExitFailure), exitWith, exitFailure)
 import System.IO (hPutStrLn, stderr, hFlush)
@@ -46,8 +47,9 @@ import Control.Monad (when)
 -----------------------------------------------------------------------------
 
 -- | Command line options
-data Opt = Opt {inputName :: String -- ^ Input file name
-               ,inputContent :: IO String -- ^ Input file content
+data Opt = Opt { inputName :: String -- ^ Input file name
+               , inputContent :: IO String -- ^ Input file content
+               , optCanonical :: Bool -- ^ Checks if the replacing map is canonical
                }
 
 -----------------------------------------------------------------------------
@@ -57,9 +59,10 @@ data Opt = Opt {inputName :: String -- ^ Input file name
 -- | Default parameters
 startOpt :: Opt
 startOpt 
-  = Opt {inputName = "foo.trs"
-        ,inputContent = exitErrorHelp "use -i option to set input"
-        -- a simple way to handle mandatory flags
+  = Opt { inputName = "foo.trs"  
+        , inputContent = exitErrorHelp "use -i option to set input"
+          -- a simple way to handle mandatory flags
+        , optCanonical      = False
         }
 
 -- | Command line options
@@ -72,9 +75,13 @@ options = [ Option "h" ["help"]
                                                       ,inputContent = readFile arg})
                            "FILE"
                    )
-                   "Input COPS file"
+                   "Input file"
+          , Option "c" ["canonical"]
+                   (NoArg (\opt -> do return opt { optCanonical = True })
+                   )
+                   "Checks if the replacement map is canonical"
           , Option "v" ["version"]
-                   (NoArg (\_ -> do hPutStrLn stderr "csrs-check, version 0.1"
+                   (NoArg (\_ -> do hPutStrLn stderr "csrs-check, version 0.2"
                                     exitWith ExitSuccess))
                    "Print version"
           ]
@@ -112,7 +119,7 @@ parseOptions = do (optsActions, rest, errors) <- getArgs
 
 -- | File extensions
 fileExtensions :: [(String, String -> Either ParseError TRS)]
-fileExtensions = [(".trs", parseCOPS)]
+fileExtensions = [(".ari", parseARI),(".trs", parseCOPS)]
 
 -- | Parse file into a TRS
 autoparse :: String -> String -> TRS
