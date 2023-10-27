@@ -21,7 +21,7 @@ main
 
 ) where
 
-import Parser.TRS.Grammar (isCanonical)
+import Parser.TRS.Grammar (TRS (..), TRSType (..), isCanonical)
 
 import Interface.CLI (Opt (..), parseOptions, autoparse)
 import System.IO (hPutStr, stdout)
@@ -40,7 +40,7 @@ main =
              , optCanonical = canonical } = opts
      filedata <- input
      let !trs = autoparse filename filedata
-     if canonical && (isCanonical trs) then
+     if canonical && (trsType trs == TRSContextSensitive) && (not . isCanonical $ trs) then
        hPutStr stdout "The replacement map is not canonical!\n"
       else
         hPutStr stdout ""

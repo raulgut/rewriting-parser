@@ -79,7 +79,7 @@ options = [ Option "h" ["help"]
           , Option "c" ["canonical"]
                    (NoArg (\opt -> do return opt { optCanonical = True })
                    )
-                   "Checks if the replacement map is canonical"
+                   "Checks if the replacement map is canonical (only for CSTRSs)"
           , Option "v" ["version"]
                    (NoArg (\_ -> do hPutStrLn stderr "csrs-check, version 0.2"
                                     exitWith ExitSuccess))

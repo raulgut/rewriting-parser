@@ -25,7 +25,7 @@ Spec(..), Decl(..), Equation (..), SimpleRule (..)
 -- * Exported functions
 
 , getTerms, nonVarLHS, nonVarLHS', isCRule, hasExtraVars, hasExtraVars'
-, isCanonical
+, isCanonical, isTRSConditional
 
 ) where
 
@@ -198,7 +198,7 @@ extractCanonicalRepMapTerm trs (T f tt)
 isCanonical :: TRS -> Bool
 isCanonical trs =
   let repmap = execState (extractCanonicalRepMap trs) (M.empty)
-  in not . and . map (checkCanonical trs repmap) . trsRMap $ trs
+  in and . map (checkCanonical trs repmap) . trsRMap $ trs
 
 -- | Checks if the replamcement map of the symbol is canonical
 checkCanonical :: TRS -> Map Id (Set Int) -> (Id,[Int]) -> Bool
@@ -209,3 +209,10 @@ checkCanonical trs rMap (f,rMapL)
                       Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n"
                       Just arity -> (S.fromList [1..arity]) == (S.fromList rMapL)
       Just rMapS -> rMapS == (S.fromList rMapL)
+
+-- | isTRSConditional checks if trsType is Conditional
+isTRSConditional :: TRS -> Bool
+isTRSConditional trs = case trsType trs of 
+                         TRSConditional _ -> True 
+                         TRSContextSensitiveConditional _ -> True
+                         _ -> False
