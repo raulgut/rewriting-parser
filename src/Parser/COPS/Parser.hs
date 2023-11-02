@@ -24,7 +24,7 @@ parseCOPS
 import Parser.COPS.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
   , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars
-  , isTRSConditional)
+  , isTRSConditional, RuleType (..))
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -57,7 +57,7 @@ checkConsistency (Left parseError) = Left parseError
 checkConsistency (Right (Spec decls)) 
   = case foldl checkDeclaration (Right (Spec [])) decls of 
      Left parseError -> Left parseError
-     Right (Spec _) -> evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] TRSStandard)
+     Right (Spec _) -> evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] (TRSStandard Standard))
 
 -- | Checks declaration order
 checkDeclaration :: Either ParseError Spec -> Decl -> Either ParseError Spec
@@ -105,7 +105,7 @@ checkWellFormed (Context rmap:rest) = do { myTRS <- get
                                              do { put $ myTRS { trsRMap = rmap
                                                               , trsType 
                                                                   = case trsType myTRS of
-                                                                      TRSStandard -> TRSContextSensitive
+                                                                      TRSStandard _ -> TRSContextSensitive
                                                                       TRSConditional typ -> TRSContextSensitiveConditional typ
                                                               }
                                                 ; checkWellFormed rest

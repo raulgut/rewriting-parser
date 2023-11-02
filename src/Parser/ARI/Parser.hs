@@ -24,7 +24,7 @@ parseARI
 import Parser.ARI.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
   , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS', isCRule, hasExtraVars
-  , hasExtraVars')
+  , hasExtraVars', RuleType (..))
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -55,7 +55,7 @@ doParse s p = parse p "" s
 checkConsistency :: Either ParseError Spec -> Either ParseError TRS 
 checkConsistency (Left parseError) = Left parseError
 checkConsistency (Right (Spec decls)) 
-  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] TRSStandard)
+  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] (TRSStandard Standard))
 
 -- | Extracts the signature and checks if the rules are well-formed wrt that
 -- signature. Precondition: Declarations are in order.
