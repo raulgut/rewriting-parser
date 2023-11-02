@@ -1,3 +1,9 @@
+; @author Takahito Aoto 
+; @author Junichi Yoshida 
+; @author Yoshihito Toyama 
+; @doi 10.1145/322217.322230 
+; p.813, attributed to Barendregt
+
 (format CSTRS) 
 (fun f 1 :replacement-map (1)) 
 (fun h 2 :replacement-map (1 2))

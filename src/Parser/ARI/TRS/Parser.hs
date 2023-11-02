@@ -37,7 +37,8 @@ trsParser = liftM Spec decls
 
 -- | We consider different types of declarations
 decls :: Parser [Decl]
-decls = do { char '('
+decls = do { try whiteSpace
+           ; char '('
            ; reserved "format"
            ; whiteSpace
            ; declTRSs
