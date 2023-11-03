@@ -20,7 +20,7 @@ module Parser.TRS.Grammar (
 
 Spec(..), Decl(..), Equation (..), SimpleRule (..)
 , Rule(..), Term (..), Id, CondType (..), TRSType (..)
-, TRS (..), RuleType (..)
+, TRS (..)
 
 -- * Exported functions
 
@@ -71,15 +71,6 @@ data Rule = Rule SimpleRule [Equation] -- ^ Conditional rewriting rule
 data Term = T Id [Term] -- ^ Term
             deriving (Eq, Data, Typeable)
 
--- | TRS Type
-data RuleType =
-  Standard
-  | SRS
-  | LeftLinear
-  | RightGround
-  | Ground
-  deriving (Eq, Show, Data, Typeable)
-
 -- | Condition Type
 data CondType =
   SemiEquational
@@ -91,7 +82,7 @@ data CondType =
 type Id = String
 
 -- | TSR Type
-data TRSType = TRSStandard RuleType
+data TRSType = TRSStandard
   | TRSConditional CondType
   | TRSContextSensitive 
   | TRSContextSensitiveConditional CondType

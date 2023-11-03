@@ -23,7 +23,7 @@ main
 
 import Parser.TRS.Grammar (TRS (..), TRSType (..), isCanonical)
 
-import Interface.CLI (Opt (..), parseOptions, autoparse)
+import Interface.CLI (Opt (..), Property (..), parseOptions, autoparse)
 import System.IO (hPutStr, stdout)
 
 -----------------------------------------------------------------------------
@@ -37,10 +37,13 @@ main =
   do (opts, _) <- parseOptions
      let Opt { inputName = filename 
              , inputContent = input
-             , optCanonical = canonical } = opts
+             , optProperty = prop } = opts
      filedata <- input
      let !trs = autoparse filename filedata
-     if canonical && (trsType trs == TRSContextSensitive) && (not . isCanonical $ trs) then
-       hPutStr stdout "The replacement map is not canonical!\n"
-      else
-        hPutStr stdout ""
+     case prop of 
+      Canonical -> if (trsType trs == TRSContextSensitive) && (not . isCanonical $ trs) then
+                     hPutStr stdout "Property canonical:\n -> The replacement map is not canonical!\n"
+                   else
+                     hPutStr stdout ""
+      _ -> hPutStr stdout ""
+     

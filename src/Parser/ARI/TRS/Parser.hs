@@ -56,9 +56,8 @@ declTRSs = do { dformat <- declTRSFormat <|> declCTRSFormat <|> declCSTRSFormat 
 -- | TRS format
 declTRSFormat :: Parser Decl
 declTRSFormat = do { reserved "TRS" 
-                    ; rltyp <- option Standard (srs <|> leftLinear <|> rightGround <|> ground)
                     ; char ')'
-                    ; return . Format $ TRSStandard rltyp
+                    ; return . Format $ TRSStandard
                     }
 
 
@@ -81,24 +80,6 @@ declCSCTRSFormat = do { reserved "CSCTRS"
                       ; char ')'
                       ; return . Format $ TRSContextSensitiveConditional condtyp
                       }
-
--- TRSStandard variations
-
--- | String Rewriting System
-srs :: Parser RuleType
-srs = reserved "srs" >> return SRS
-
--- | Left Linear TRS
-leftLinear :: Parser RuleType
-leftLinear = reserved "left-linear" >> return LeftLinear
-
--- | Right Ground TRS
-rightGround :: Parser RuleType
-rightGround = reserved "right-ground" >> return RightGround
-
--- | Ground TRS
-ground :: Parser RuleType
-ground = reserved "ground" >> return Ground
 
 -- Conditions
 

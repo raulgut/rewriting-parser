@@ -22,7 +22,7 @@ module Interface.CLI (
 
 -- * Exported data
 
-Opt(..)
+Opt(..), Property (..)
 
 -- * Exported functions
 
@@ -46,10 +46,14 @@ import Control.Monad (when)
 -- Data
 -----------------------------------------------------------------------------
 
+-- | Property
+data Property = None
+              | Canonical
+
 -- | Command line options
 data Opt = Opt { inputName :: String -- ^ Input file name
                , inputContent :: IO String -- ^ Input file content
-               , optCanonical :: Bool -- ^ Checks if the replacing map is canonical
+               , optProperty :: Property -- ^ Check property
                }
 
 -----------------------------------------------------------------------------
@@ -62,7 +66,7 @@ startOpt
   = Opt { inputName = "foo.trs"  
         , inputContent = exitErrorHelp "use -i option to set input"
           -- a simple way to handle mandatory flags
-        , optCanonical      = False
+        , optProperty = None
         }
 
 -- | Command line options
@@ -71,15 +75,19 @@ options = [ Option "h" ["help"]
                    (NoArg (\opt -> exitHelp))
                    "Show usage info"
           , Option "i" ["input"]
-                   (ReqArg (\arg opt -> do return opt {inputName = arg 
-                                                      ,inputContent = readFile arg})
+                   (ReqArg (\arg opt -> do return opt { inputName = arg 
+                                                      , inputContent = readFile arg})
                            "FILE"
                    )
                    "Input file"
-          , Option "c" ["canonical"]
-                   (NoArg (\opt -> do return opt { optCanonical = True })
+          , Option "p" ["check-property"]
+                   (ReqArg (\arg opt -> do return opt { optProperty = case arg of 
+                                                                       "canonical" -> Canonical
+                                                                       _ -> None
+                                                      })
+                          "canonical (only CSTRSs)"
                    )
-                   "Checks if the replacement map is canonical (only for CSTRSs)"
+                   "Checks if satisfy the property: canonical (only for CSTRSs)"
           , Option "v" ["version"]
                    (NoArg (\_ -> do hPutStrLn stderr "csrs-check, version 0.2"
                                     exitWith ExitSuccess))
