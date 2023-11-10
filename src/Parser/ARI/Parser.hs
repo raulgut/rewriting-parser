@@ -23,8 +23,8 @@ parseARI
 
 import Parser.ARI.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS', isCRule, hasExtraVars
-  , hasExtraVars')
+  , Term (..), Rule (..), TId, TRSType (..), getTerms)
+import Parser.TRS.Properties (nonVarLHS', isCRule, hasExtraVars, hasExtraVars')
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -140,7 +140,7 @@ checkTerm (T id terms) = do { myTRS <- get
                             }
 
 -- | Checks if the replacement map satisfies arity restriction and increasing order
-checkRMap :: [(Id, [Int])] -> State TRS (Either ParseError ())
+checkRMap :: [(TId, [Int])] -> State TRS (Either ParseError ())
 checkRMap [] = return . Right $ ()
 checkRMap ((f,[]):rmaps) = checkRMap rmaps 
 checkRMap ((f,rmap):rmaps) = do { myTRS <- get 

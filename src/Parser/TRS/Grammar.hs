@@ -19,23 +19,26 @@ module Parser.TRS.Grammar (
 -- * Exported data
 
 Spec(..), Decl(..), Equation (..), SimpleRule (..)
-, Rule(..), Term (..), Id, CondType (..), TRSType (..)
+, Rule(..), Term (..), TId, CondType (..), TRSType (..)
 , TRS (..)
 
 -- * Exported functions
 
-, getTerms, nonVarLHS, nonVarLHS', isCRule, hasExtraVars, hasExtraVars'
-, isCanonical, isTRSConditional
+, getTerms, getVars, getVars', lhs, rhs, getMSVars', conds
+, eqlhs, eqrhs, matches
 
 ) where
 
 import Data.Typeable
 import Data.Generics
-import Data.Map as M (Map, lookup, insertWith, empty)
-import Data.Set as S (Set, member, unions, insert, (\\), null, union, fromList)
+import Data.Map as M (Map, lookup, insertWith, empty, insert, notMember)
+import Data.Set as S (Set, member, unions, insert, (\\), null, union, fromList
+ , singleton)
+import Data.MultiSet as MS (MultiSet, unions, insert)
 import Data.List (intersperse)
-import Data.Maybe (isNothing)
-import Control.Monad.State (MonadState (..), execState)
+import Data.Maybe (isNothing, isJust)
+import Control.Monad (zipWithM_)
+import Control.Monad.State (State, evalState, execState, get, put)
 
 -----------------------------------------------------------------------------
 -- Data
@@ -47,10 +50,10 @@ data Spec = Spec [Decl] -- ^ List of declarations
 
 -- | List of declarations
 data Decl = CType CondType -- ^ Type of conditional rules
-   | Var [Id] -- ^ Set of variables
-   | Signature [(Id,Int)] -- ^ Extended signature
+   | Var [TId] -- ^ Set of variables
+   | Signature [(TId,Int)] -- ^ Extended signature
    | Rules [Rule] -- ^ Set of rules
-   | Context [(Id, [Int])] -- ^ Context-Sensitive strategy
+   | Context [(TId, [Int])] -- ^ Context-Sensitive strategy
    | Comment String -- ^ Extra information
    | Format TRSType
      deriving (Eq, Show, Data, Typeable)
@@ -68,8 +71,8 @@ data Rule = Rule SimpleRule [Equation] -- ^ Conditional rewriting rule
             deriving (Eq, Data, Typeable)
 
 -- | Term declaration
-data Term = T Id [Term] -- ^ Term
-            deriving (Eq, Data, Typeable)
+data Term = T TId [Term] -- ^ Term
+            deriving (Eq, Ord, Data, Typeable)
 
 -- | Condition Type
 data CondType =
@@ -78,8 +81,8 @@ data CondType =
   | Oriented  
   deriving (Eq, Show, Data, Typeable)
 
--- | Identifier
-type Id = String
+-- | Term Identifier
+type TId = String
 
 -- | TSR Type
 data TRSType = TRSStandard
@@ -90,9 +93,9 @@ data TRSType = TRSStandard
 
 -- | Term Rewriting Systems (TRS, CTRS, CSTRS, CSCTRS)
 data TRS 
-  = TRS { trsSignature :: Map Id Int
-        , trsVariables :: Set Id
-        , trsRMap :: [(Id, [Int])]
+  = TRS { trsSignature :: Map TId Int
+        , trsVariables :: Set TId
+        , trsRMap :: [(TId, [Int])]
         , trsRules :: [Rule]
         , trsType :: TRSType
         } deriving (Show)
@@ -121,19 +124,19 @@ instance Show Term where
 -- Functions
 -----------------------------------------------------------------------------
 
--- | gets all the terms from a rule
-getVars :: Set Id -> Term -> Set Id
-getVars vs (T idt ts) = let tsVars = unions . map (getVars vs) $ ts
+-- | gets all the different vars from a term
+getVars :: Set TId -> Term -> Set TId
+getVars vs (T idt ts) = let tsVars = S.unions . map (getVars vs) $ ts
                         in if member idt vs then
-                             insert idt tsVars 
+                             S.insert idt tsVars 
                            else 
                              tsVars
 
--- | gets all the terms from a rule
-getVars' :: Map Id Int -> Term -> Set Id
-getVars' fs (T idt ts) = let tsVars = unions . map (getVars' fs) $ ts
+-- | gets all the different vars from a term
+getVars' :: Map TId Int -> Term -> Set TId
+getVars' fs (T idt ts) = let tsVars = S.unions . map (getVars' fs) $ ts
                         in if isNothing $ M.lookup idt fs then
-                             insert idt tsVars 
+                             S.insert idt tsVars 
                            else 
                              tsVars
 
@@ -145,74 +148,87 @@ getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
 getTermsEq :: Equation -> [Term]
 getTermsEq (l :==: r) = [l,r]
 
--- | checks if the lhs is non-variable
-nonVarLHS :: Set Id -> Rule -> Bool
-nonVarLHS vs (Rule ((T idt _) :-> r) eqs) = not . member idt $ vs 
+-- | get the left-hand side of a rule
+lhs :: Rule -> Term
+lhs (Rule (l :-> _) _) = l
 
--- | checks if the lhs is non-variable
-nonVarLHS' :: Map Id Int -> Rule -> Bool
-nonVarLHS' fs (Rule ((T idt _) :-> r) eqs) = not . isNothing . M.lookup idt $ fs
-                                                
+-- | get the right-hand side of a rule
+rhs :: Rule -> Term
+rhs (Rule (_ :-> r) _) = r
 
--- | checks if the rule is conditional
-isCRule :: Rule -> Bool
-isCRule (Rule _ []) = False 
-isCRule _ = True 
+-- | get the equations a rule
+conds :: Rule -> [Equation]
+conds (Rule _ eqs) = eqs
 
--- | checks if the non-conditional rule has extra variables
-hasExtraVars :: Set Id -> Rule -> Bool
-hasExtraVars vs (Rule (l :-> r) []) = not . S.null $ getVars vs r \\ getVars vs l
-hasExtraVars _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"
+-- | get the left-hand side of a equation
+eqlhs :: Equation -> Term
+eqlhs (l :==: _) = l
 
--- | checks if the non-conditional rule has extra variables
-hasExtraVars' :: Map Id Int -> Rule -> Bool
-hasExtraVars' fs (Rule (l :-> r) []) = not . S.null $ getVars' fs r \\ getVars' fs l
-hasExtraVars' _ _ = error $ "Error: hasExtraVars only applies to non-conditional rules"
+-- | get the right-hand side of a equation
+eqrhs :: Equation -> Term
+eqrhs (_ :==: r) = r
 
--- | Extract canonical replacement map
-extractCanonicalRepMap :: (MonadState (Map Id (Set Int)) m) => TRS -> m ()
-extractCanonicalRepMap trs = do a <- sequence . Prelude.map (extractCanonicalRepMapRule trs) . trsRules $ trs
-                                return ()
+-- | gets all the vars from a term
+getMSVars' :: Map TId Int -> Term -> MultiSet TId
+getMSVars' fs (T idt ts) = let tsVars = MS.unions . map (getMSVars' fs) $ ts
+                           in if isNothing $ M.lookup idt fs then
+                                MS.insert idt tsVars 
+                              else 
+                                tsVars
 
--- | Extract canonical replacement map from rule
-extractCanonicalRepMapRule :: (MonadState (Map Id (Set Int)) m) => TRS -> Rule -> m ()
-extractCanonicalRepMapRule trs (Rule (l :-> _) _) = extractCanonicalRepMapTerm trs l
+-- | Get all subterms
+subterms :: Term -> Set Term
+subterms t@(T _ ts)
+    = foldr S.union (singleton t) (map subterms ts)
 
--- | Extract canonical replacement map from term
-extractCanonicalRepMapTerm :: (MonadState (Map Id (Set Int)) m) => TRS -> Term -> m ()
-extractCanonicalRepMapTerm trs (T f tt) 
-  = do a <- sequence . map (extractCanonicalRepMapTerm trs) . filter (not . isVTerm) $ tt
-       mapping <- get
-       let mapping' = M.insertWith (S.union) f compf' mapping
-       put mapping'
-       return ()
+-- Matching
+
+-- | If two terms match, returns its substitution in the
+-- monad. Variables in terms must be disjoint
+match :: TRS -> Term -> Term -> State (Maybe (Map TId Term)) ()
+match trs = matchF 
+  where
+    sig = trsSignature trs
+    matchF t s 
+      = do t' <- findT trs t
+           case (t', s) of
+             (T x _,T y _) | notMember x sig && 
+                             notMember y sig && 
+                             x == y -> return ()
+             (T x _, u) | notMember x sig 
+               -> case (t, t') of
+                    (T x' _, T y' _ ) | notMember x' sig && 
+                                        notMember y' sig && 
+                                        x' == y' -> do subst <- get
+                                                       case subst of 
+                                                        Just subst' -> do let newSubst = M.insert x u subst'
+                                                                          put . Just $ newSubst
+                                                        Nothing -> return ()
+                    _ -> put Nothing -- Structure mismatch
+             (u, v) -> zipTermM_ matchF u v
+    zipTermM_ f (T f1 tt1) (T f2 tt2) | f1 == f2 = zipWithM_ f tt1 tt2
+    zipTermM_ _ _ _ = put Nothing -- Structure mismatch
+
+-- | We construct the most general unifier binding variables
+findT :: TRS -> Term -> State (Maybe (Map TId Term)) Term
+findT trs t0@(T v _) | notMember v sig = go v
     where
       sig = trsSignature trs
-      arity = case M.lookup f sig of 
-                Just ar -> ar 
-                Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n" 
-      isVTerm (T v _) = isNothing $ M.lookup v sig  
-      compf' = S.fromList [i | i <- [1..arity], not . isVTerm $ (tt!!(i - 1))]
+      go x = do subst <- get 
+                case subst of 
+                  Just subst' -> case M.lookup x subst' of
+                                   Just (T x' _) | notMember x' sig -> go x'
+                                   Just t -> do let newSubst = M.insert v t subst'
+                                                put . Just $ newSubst
+                                                return t
+                                   Nothing -> return t0
+findT _ t0 = return t0
 
--- | Checks if the replacement map of the TRS is canonical
-isCanonical :: TRS -> Bool
-isCanonical trs =
-  let repmap = execState (extractCanonicalRepMap trs) (M.empty)
-  in and . map (checkCanonical trs repmap) . trsRMap $ trs
+-- | Returns if two terms matching. Variables in terms must be disjoint
+matches :: TRS -> Term -> Term -> Bool
+matches trs t u = isJust (execState (match trs t u) (Just M.empty))
 
--- | Checks if the replamcement map of the symbol is canonical
-checkCanonical :: TRS -> Map Id (Set Int) -> (Id,[Int]) -> Bool
-checkCanonical trs rMap (f,rMapL) 
-  = case M.lookup f rMap of
-      Nothing -> let ar = trsSignature trs
-                 in case M.lookup f ar of 
-                      Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n"
-                      Just arity -> (S.fromList [1..arity]) == (S.fromList rMapL)
-      Just rMapS -> rMapS == (S.fromList rMapL)
-
--- | isTRSConditional checks if trsType is Conditional
-isTRSConditional :: TRS -> Bool
-isTRSConditional trs = case trsType trs of 
-                         TRSConditional _ -> True 
-                         TRSContextSensitiveConditional _ -> True
-                         _ -> False
+-- | Returns if two terms match and returs the matching substitution. Variables
+-- in terms must be disjoint
+matchSubstitution :: TRS -> Term -> Term -> Maybe (Map TId Term)
+matchSubstitution trs t u = execState (match trs t u) (Just M.empty)

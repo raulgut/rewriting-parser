@@ -21,13 +21,14 @@ Executable csrs-check
   other-modules: 
     Interface.CLI
     Parser.TRS.Grammar
+    Parser.TRS.Properties
     Parser.COPS.Parser
     Parser.COPS.TRS.Parser
     Parser.COPS.TRS.Scanner
     Parser.ARI.Parser
     Parser.ARI.TRS.Parser
     Parser.ARI.TRS.Scanner
-  build-depends: 	base > 4, pretty, parsec, syb, containers, mtl
+  build-depends: 	base > 4, pretty, parsec, syb, containers, mtl, multiset
   hs-source-dirs: 	src
   ghc-options: -O2 -threaded
   extensions: 

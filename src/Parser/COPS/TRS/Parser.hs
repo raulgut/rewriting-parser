@@ -138,7 +138,7 @@ declSignature :: Parser Decl
 declSignature = reserved "SIG" >> liftM Signature (many (parens fun))
 
 -- | Function symbol
-fun :: Parser (Id,Int)
+fun :: Parser (TId,Int)
 fun =
  do n <- identifier
     m <- many1 digit

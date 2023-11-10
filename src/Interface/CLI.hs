@@ -31,6 +31,7 @@ Opt(..), Property (..)
 ) where
 
 import Parser.TRS.Grammar (TRS)
+import Parser.TRS.Properties (Property (..))
 import Parser.COPS.Parser (parseCOPS)
 import Parser.ARI.Parser (parseARI)
 import System.Environment (getProgName, getArgs)
@@ -45,10 +46,6 @@ import Control.Monad (when)
 -----------------------------------------------------------------------------
 -- Data
 -----------------------------------------------------------------------------
-
--- | Property
-data Property = None
-              | Canonical
 
 -- | Command line options
 data Opt = Opt { inputName :: String -- ^ Input file name
@@ -83,16 +80,51 @@ options = [ Option "h" ["help"]
           , Option "p" ["check-property"]
                    (ReqArg (\arg opt -> do return opt { optProperty = case arg of 
                                                                        "canonical" -> Canonical
+                                                                       "srs" -> SRS
+                                                                       "left-linear" -> LeftLinear
+                                                                       "right-ground" -> RightGround
+                                                                       "ground" -> Ground
+                                                                       "oriented" -> Oriented
+                                                                       "join" -> Join
+                                                                       "semi-equational" -> SemiEquational
+                                                                       "normal" -> Normal
+                                                                       "1-ctrs" -> OneCTRS
+                                                                       "2-ctrs" -> TwoCTRS
+                                                                       "3-ctrs" -> ThreeCTRS
                                                                        _ -> None
                                                       })
-                          "canonical (only CSTRSs)"
+                          "PROPERTY (see --show-properties)"
                    )
-                   "Checks if satisfy the property: canonical (only for CSTRSs)"
+                   "Checks if satisfies PROPERTY"
+          , Option "" ["show-properties"]
+                   (NoArg (\_ -> do hPutStrLn stderr ppString
+                                    exitWith ExitSuccess))
+                   "Show properties"
           , Option "v" ["version"]
                    (NoArg (\_ -> do hPutStrLn stderr "csrs-check, version 0.2"
                                     exitWith ExitSuccess))
                    "Print version"
           ]
+
+-- | Properties message
+ppString = "Properties:\n" 
+  ++ " * For TRSs:\n"
+  ++ " -> srs: checks if the TRS is a SRS\n"
+  ++ " -> left-linear: checks if the TRS is a left-linear\n"
+  ++ " -> right-ground: checks if the TRS is a right-ground\n"
+  ++ " -> ground: checks if the TRS is a ground\n"
+  ++ " * For CSTRSs:\n"
+  ++ " -> canonical: checks if the replament map is canonical\n"
+  ++ " * For CTRSs and CSCTRSs:\n"
+  ++ " -> oriented: checks if the conditions are oriented\n"
+  ++ " -> join: checks if the conditions are join\n"
+  ++ " -> semi-equational: checks if the conditions are semi-equational\n"
+  ++ " -> 1-ctrs: checks if it is a 1-CTRS\n"
+  ++ " -> 2-ctrs: checks if it is a 2-CTRS\n"
+  ++ " -> 3-ctrs: checks if it is a 3-CTRS\n"
+  ++ " * For CTRSs:\n"
+  ++ " -> normal: checks if the CTRS is normal\n"
+  ++ " -> left-linear: checks if the CTRS is a left-linear"
 
 -- | Help information
 showHelp :: IO ()

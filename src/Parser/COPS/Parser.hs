@@ -23,8 +23,8 @@ parseCOPS
 
 import Parser.COPS.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), Id, TRSType (..), getTerms, nonVarLHS, isCRule, hasExtraVars
-  , isTRSConditional)
+  , Term (..), Rule (..), TId, TRSType (..), getTerms)
+import Parser.TRS.Properties (nonVarLHS, isCRule, hasExtraVars, isConditional)
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -135,8 +135,8 @@ checkRules [] = do { myTRS <- get
 checkRules (r:rs) = do { myTRS <- get
                        ; let vs = trsVariables myTRS
                        ; if nonVarLHS vs r then -- lhs is non-variable 
-                           if (isTRSConditional myTRS) || (not . isCRule $ r) then -- conditional rules not allowed in TRSs 
-                             if isTRSConditional myTRS || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
+                           if (isConditional myTRS) || (not . isCRule $ r) then -- conditional rules not allowed in TRSs 
+                             if isConditional myTRS || (not . hasExtraVars vs $ r) then -- extra variables not allowed in non-conditional rules
                                do { result <- checkTerms . getTerms $ r 
                                   ; case result of
                                       Left parseError -> return . Left $ parseError 
@@ -182,7 +182,7 @@ checkTerm (T id terms) = do { myTRS <- get
                             }
 
 -- | Checks if the replacement map satisfies arity restriction and increasing order
-checkRMap :: [(Id, [Int])] -> State TRS (Either ParseError ())
+checkRMap :: [(TId, [Int])] -> State TRS (Either ParseError ())
 checkRMap [] = return . Right $ ()
 checkRMap ((f,[]):rmaps) = do { myTRS <- get 
                               ; case M.lookup f (trsSignature myTRS) of 

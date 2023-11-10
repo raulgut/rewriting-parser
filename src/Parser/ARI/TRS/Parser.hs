@@ -147,7 +147,7 @@ declSignature = do { funcs <- (many (try $ parens fun))
    getRepMap f ar (Just replM) = replM
 
 -- | Function symbol
-fun :: Parser (Id,Int, Maybe [Int])
+fun :: Parser (TId,Int, Maybe [Int])
 fun =
  do reserved "fun"
     n <- identifier
