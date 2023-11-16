@@ -45,87 +45,87 @@ main =
      case prop of 
       Canonical -> if (trsType trs == TRSContextSensitive) then
                      if (not . isCanonical $ trs) then
-                       hPutStr stdout "Property canonical:\n -> The replacement map is not canonical!\n"
+                       hPutStr stdout "NO\n\nProperty canonical:\n -> The replacement map is not canonical!\n"
                      else
-                      hPutStr stdout "" 
+                      hPutStr stdout "YES\n" 
                    else
-                     hPutStr stdout "Property canonical:\n -> The format is not CSTRS\n"
+                     hPutStr stdout "NO\n\nProperty canonical:\n -> The format is not CSTRS\n"
       SRS -> if (trsType trs == TRSStandard) then
                if (not . isSRS $ trs) then
-                 hPutStr stdout "Property SRS:\n -> The system is not a String Rewriting System!\n"
+                 hPutStr stdout "NO\n\nProperty SRS:\n -> The system is not a String Rewriting System!\n"
                else
-                 hPutStr stdout "" 
+                 hPutStr stdout "YES\n" 
              else
-               hPutStr stdout "Property SRS:\n -> The format is not TRS\n"
+               hPutStr stdout "NO\n\nProperty SRS:\n -> The format is not TRS\n"
       LeftLinear -> if (trsType trs == TRSStandard) || (isTRSConditional . trsType $ trs) then
                       if (not . isLeftLinear $ trs) then
-                        hPutStr stdout "Property Left Linear:\n -> The system is not Left Linear!\n"
+                        hPutStr stdout "NO\n\nProperty Left Linear:\n -> The system is not Left Linear!\n"
                       else
-                        hPutStr stdout "" 
+                        hPutStr stdout "YES\n" 
                     else
-                      hPutStr stdout "Property Left Linear:\n -> The format is neither TRS nor CTRS\n"
+                      hPutStr stdout "NO\n\nProperty Left Linear:\n -> The format is neither TRS nor CTRS\n"
       RightGround -> if (trsType trs == TRSStandard) then
                        if (not . isRightGround $ trs) then
-                         hPutStr stdout "Property Right Ground:\n -> The system is not Right Ground!\n"
+                         hPutStr stdout "NO\n\nProperty Right Ground:\n -> The system is not Right Ground!\n"
                        else
-                         hPutStr stdout "" 
+                         hPutStr stdout "YES\n" 
                      else
-                       hPutStr stdout "Property Right Ground:\n -> The format is not TRS\n"
+                       hPutStr stdout "NO\n\nProperty Right Ground:\n -> The format is not TRS\n"
       Ground -> if (trsType trs == TRSStandard) then
                   if (not . isGround $ trs) then
-                    hPutStr stdout "Property Ground:\n -> The system is not Ground!\n"
+                    hPutStr stdout "NO\n\nProperty Ground:\n -> The system is not Ground!\n"
                   else
-                    hPutStr stdout "" 
+                    hPutStr stdout "YES\n" 
                 else
-                  hPutStr stdout "Property Ground:\n -> The format is not TRS\n"
+                  hPutStr stdout "NO\n\nProperty Ground:\n -> The format is not TRS\n"
       Oriented -> if (isConditional $ trs) then
                     if (not . isOriented $ trs) then
-                        hPutStr stdout "Property Oriented:\n -> The condition relation is not Oriented!\n"
+                        hPutStr stdout "NO\n\nProperty Oriented:\n -> The condition relation is not Oriented!\n"
                       else
-                        hPutStr stdout "" 
+                        hPutStr stdout "YES\n" 
                   else
-                    hPutStr stdout "Property Oriented:\n -> The format is neither CTRS nor CSCTRS\n"
+                    hPutStr stdout "NO\n\nProperty Oriented:\n -> The format is neither CTRS nor CSCTRS\n"
       Join -> if (isConditional $ trs) then
                 if (not . isJoin $ trs) then
-                  hPutStr stdout "Property Join:\n -> The condition relation is not Oriented!\n"
+                  hPutStr stdout "NO\n\nProperty Join:\n -> The condition relation is not Oriented!\n"
                 else
-                  hPutStr stdout "" 
+                  hPutStr stdout "YES\n" 
               else
-                hPutStr stdout "Property Join:\n -> The format is neither CTRS nor CSCTRS\n"
+                hPutStr stdout "NO\n\nProperty Join:\n -> The format is neither CTRS nor CSCTRS\n"
       SemiEquational -> if (isConditional $ trs) then
                           if (not . isSemiEquational $ trs) then
-                            hPutStr stdout "Property Semi-Equational:\n -> The condition relation is not Semi-Equational!\n"
+                            hPutStr stdout "NO\n\nProperty Semi-Equational:\n -> The condition relation is not Semi-Equational!\n"
                           else
-                            hPutStr stdout "" 
+                            hPutStr stdout "YES\n" 
                         else
-                          hPutStr stdout "Property Semi-Equational:\n -> The format is neither CTRS nor CSCTRS\n"
+                          hPutStr stdout "NO\n\nProperty Semi-Equational:\n -> The format is neither CTRS nor CSCTRS\n"
       Normal -> if (isTRSConditional . trsType $ trs) then
                   if (not . isNormal $ trs) then
-                        hPutStr stdout "Property Normal:\n -> The CTRS is not Normal!\n"
+                        hPutStr stdout "NO\n\nProperty Normal:\n -> The CTRS is not Normal!\n"
                       else
-                        hPutStr stdout "" 
+                        hPutStr stdout "YES\n" 
                 else
-                  hPutStr stdout "Property Normal:\n -> The format is not CTRS\n"
+                  hPutStr stdout "NO\n\nProperty Normal:\n -> The format is not CTRS\n"
       OneCTRS -> if (isConditional $ trs) then
                    if (not . isOneCTRS $ trs) then
-                     hPutStr stdout "Property 1-CTRS:\n -> The system is not a 1-CTRS!\n"
+                     hPutStr stdout "NO\n\nProperty 1-CTRS:\n -> The system is not a 1-CTRS!\n"
                    else
-                     hPutStr stdout "" 
+                     hPutStr stdout "YES\n" 
                  else
-                   hPutStr stdout "Property 1-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                   hPutStr stdout "NO\n\nProperty 1-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       TwoCTRS -> if (isConditional $ trs) then
                   if (not . isTwoCTRS $ trs) then
-                        hPutStr stdout "Property 2-CTRS:\n -> The system is not a 2-CTRS!\n"
+                        hPutStr stdout "NO\n\nProperty 2-CTRS:\n -> The system is not a 2-CTRS!\n"
                       else
-                        hPutStr stdout "" 
+                        hPutStr stdout "YES\n" 
                  else
-                   hPutStr stdout "Property 2-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                   hPutStr stdout "NO\n\nProperty 2-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       ThreeCTRS -> if (isConditional $ trs) then
                      if (not . isThreeCTRS $ trs) then
-                         hPutStr stdout "Property 3-CTRS:\n -> The system is not a 3-CTRS!\n"
+                         hPutStr stdout "NO\n\nProperty 3-CTRS:\n -> The system is not a 3-CTRS!\n"
                        else
-                         hPutStr stdout "" 
+                         hPutStr stdout "YES\n" 
                    else
-                     hPutStr stdout "Property 3-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                     hPutStr stdout "NO\n\nProperty 3-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       _ -> hPutStr stdout ""
      
