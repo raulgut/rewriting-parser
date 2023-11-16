@@ -88,9 +88,9 @@ options = [ Option "h" ["help"]
                                                                        "join" -> Join
                                                                        "semi-equational" -> SemiEquational
                                                                        "normal" -> Normal
-                                                                       "1-ctrs" -> OneCTRS
-                                                                       "2-ctrs" -> TwoCTRS
-                                                                       "3-ctrs" -> ThreeCTRS
+                                                                       "type1" -> OneCTRS
+                                                                       "type2" -> TwoCTRS
+                                                                       "type3" -> ThreeCTRS
                                                                        _ -> None
                                                       })
                           "PROPERTY (see --show-properties)"
@@ -119,9 +119,9 @@ ppString = "Properties:\n"
   ++ " -> oriented: checks if the conditions are oriented\n"
   ++ " -> join: checks if the conditions are join\n"
   ++ " -> semi-equational: checks if the conditions are semi-equational\n"
-  ++ " -> 1-ctrs: checks if it is a 1-CTRS\n"
-  ++ " -> 2-ctrs: checks if it is a 2-CTRS\n"
-  ++ " -> 3-ctrs: checks if it is a 3-CTRS\n"
+  ++ " -> type1: checks if it is a Type 1 CTRS\n"
+  ++ " -> type2: checks if it is a Type 2 CTRS\n"
+  ++ " -> type3: checks if it is a Type 3 CTRS\n"
   ++ " * For CTRSs:\n"
   ++ " -> normal: checks if the CTRS is normal\n"
   ++ " -> left-linear: checks if the CTRS is a left-linear"

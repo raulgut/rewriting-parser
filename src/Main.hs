@@ -108,24 +108,24 @@ main =
                   hPutStr stdout "NO\n\nProperty Normal:\n -> The format is not CTRS\n"
       OneCTRS -> if (isConditional $ trs) then
                    if (not . isOneCTRS $ trs) then
-                     hPutStr stdout "NO\n\nProperty 1-CTRS:\n -> The system is not a 1-CTRS!\n"
+                     hPutStr stdout "NO\n\nProperty Type 1 CTRS:\n -> The system is not a Type 1 CTRS!\n"
                    else
                      hPutStr stdout "YES\n" 
                  else
-                   hPutStr stdout "NO\n\nProperty 1-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                   hPutStr stdout "NO\n\nProperty Type 1 CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       TwoCTRS -> if (isConditional $ trs) then
                   if (not . isTwoCTRS $ trs) then
-                        hPutStr stdout "NO\n\nProperty 2-CTRS:\n -> The system is not a 2-CTRS!\n"
+                        hPutStr stdout "NO\n\nProperty Type 2 CTRS:\n -> The system is not a Type 2 CTRS!\n"
                       else
                         hPutStr stdout "YES\n" 
                  else
-                   hPutStr stdout "NO\n\nProperty 2-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                   hPutStr stdout "NO\n\nProperty Type 2 CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       ThreeCTRS -> if (isConditional $ trs) then
                      if (not . isThreeCTRS $ trs) then
-                         hPutStr stdout "NO\n\nProperty 3-CTRS:\n -> The system is not a 3-CTRS!\n"
+                         hPutStr stdout "NO\n\nProperty Type 3 CTRS:\n -> The system is not a Type 3 CTRS!\n"
                        else
                          hPutStr stdout "YES\n" 
                    else
-                     hPutStr stdout "NO\n\nProperty 3-CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
+                     hPutStr stdout "NO\n\nProperty Type 3 CTRS:\n -> The format is neither CTRS nor CSCTRS\n"
       _ -> hPutStr stdout ""
      
