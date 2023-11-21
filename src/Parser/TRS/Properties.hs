@@ -31,7 +31,7 @@ Property (..)
 
 import Parser.TRS.Grammar as G
 
-import Data.Map as M (Map, empty, lookup, insert, fromList, insertWith, elems)
+import Data.Map as M (Map, empty, lookup, insert, fromList, insertWith, elems, assocs)
 import Data.Set as S (Set, empty, fromList, member, unions, insert, (\\)
   , null, union, isSubsetOf)
 import Data.MultiSet as MS (occur, findMax, null)
@@ -40,7 +40,7 @@ import Control.Monad.State (State, evalState, get, put)
 import Data.List (intersperse)
 import Data.Maybe (isNothing)
 import Control.Monad.State (MonadState (..), execState)
-
+import Debug.Trace (trace)
 -----------------------------------------------------------------------------
 -- Data
 -----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ isTRSConditional ty = case ty of
 isCanonical :: TRS -> Bool
 isCanonical trs =
   let repmap = execState (extractCanonicalRepMap trs) (M.empty)
-  in and . map (checkCanonical trs repmap) . trsRMap $ trs
+  in and . map (checkCanonical (M.fromList . trsRMap $ trs) repmap) . M.assocs . trsSignature $ trs
 
 -- | Extract canonical replacement map
 extractCanonicalRepMap :: (MonadState (Map TId (Set Int)) m) => TRS -> m ()
@@ -131,15 +131,14 @@ extractCanonicalRepMapTerm trs (T f tt)
       isVTerm (T v _) = isNothing $ M.lookup v sig  
       compf' = S.fromList [i | i <- [1..arity], not . isVTerm $ (tt!!(i - 1))]
 
--- | Checks if the replamcement map of the symbol is canonical
-checkCanonical :: TRS -> Map TId (Set Int) -> (TId,[Int]) -> Bool
-checkCanonical trs rMap (f,rMapL) 
-  = case M.lookup f rMap of
-      Nothing -> let ar = trsSignature trs
-                 in case M.lookup f ar of 
-                      Nothing -> error $ "Symbol " ++ f ++ " does not appear in the Signature.\n"
-                      Just arity -> (S.fromList [1..arity]) == (S.fromList rMapL)
-      Just rMapS -> rMapS == (S.fromList rMapL)
+-- | Checks if the replacement map of the symbol is canonical
+checkCanonical :: Map TId [Int] -> Map TId (Set Int) -> (TId,Int) -> Bool
+checkCanonical rMap canRMap (f,arity) 
+  = case (M.lookup f rMap, M.lookup f canRMap) of
+      (Nothing, Nothing) -> [1..arity] == [] -- replacement map is [1..arity] and f does not appear in any lhs of a rule
+      (Nothing, Just rMapS) -> (S.fromList [1..arity]) == rMapS
+      (Just rMapL, Nothing) -> rMapL == [] -- f does not appear in any lhs of a rule
+      (Just rMapL, Just rMapS) -> (S.fromList rMapL == rMapS)
 
 -- | Checks if the all the symbols have arity 1
 isSRS :: TRS -> Bool

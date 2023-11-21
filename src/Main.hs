@@ -43,13 +43,10 @@ main =
      filedata <- input
      let !trs = autoparse filename filedata
      case prop of 
-      Canonical -> if (trsType trs == TRSContextSensitive) then
-                     if (not . isCanonical $ trs) then
-                       hPutStr stdout "NO\n\nProperty canonical:\n -> The replacement map is not canonical!\n"
-                     else
-                      hPutStr stdout "YES\n" 
+      Canonical -> if (not . isCanonical $ trs) then
+                     hPutStr stdout "NO\n\nProperty canonical:\n -> The replacement map is not canonical!\n"
                    else
-                     hPutStr stdout "NO\n\nProperty canonical:\n -> The format is not CSTRS\n"
+                     hPutStr stdout "YES\n" 
       SRS -> if (trsType trs == TRSStandard) then
                if (not . isSRS $ trs) then
                  hPutStr stdout "NO\n\nProperty SRS:\n -> The system is not a String Rewriting System!\n"
