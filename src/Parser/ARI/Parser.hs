@@ -24,7 +24,7 @@ parseARI
 import Parser.ARI.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
   , Term (..), Rule (..), TId, TRSType (..), getTerms)
-import Parser.TRS.Properties (nonVarLHS', isCRule, hasExtraVars, hasExtraVars')
+import Parser.TRS.Properties (nonVarLHS', isConditional, hasExtraVars, hasExtraVars')
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
 import Text.ParserCombinators.Parsec.Error (Message (..), newErrorMessage)
@@ -102,7 +102,7 @@ checkRules [] = do { myTRS <- get
 checkRules (r:rs) = do { myTRS <- get
                        ; let fs = trsSignature myTRS
                        ; if nonVarLHS' fs r then -- lhs is non-variable 
-                           if isCRule r || (not . hasExtraVars' fs $ r) then -- extra variables not allowed in non-conditional rules
+                           if (isConditional myTRS) || (not . hasExtraVars' fs $ r) then -- extra variables not allowed in non-conditional rules
                              do { result <- checkTerms . getTerms $ r 
                                 ; case result of
                                     Left parseError -> return . Left $ parseError 

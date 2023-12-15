@@ -40,8 +40,8 @@ trsDef = emptyDef {
    , P.identLetter = P.identStart trsDef
    , P.opStart = P.identStart trsDef
    , P.opLetter = P.identStart trsDef
-   , P.reservedNames= [ "format", "fun", "rule", "semi-equational", "join" , "oriented"
-                      , "replacement-map", "CSTRS", "CSCTRS", "CTRS", "TRS"]
+   , P.reservedNames= [] -- "format", "fun", "rule", "semi-equational", "join" , "oriented"
+                      --, "replacement-map", "CSTRS", "CSCTRS", "CTRS", "TRS"]
    , P.reservedOpNames = ["->","="]
    , P.caseSensitive = True
    }
