@@ -1,4 +1,4 @@
-# rewriting parser
+# Rewriting Parser
 Syntax Checker and Parser for Rewriting Theories
 
 How to generate the executable (tested using Cabal 2.4 and ghc 8.6.5):
