@@ -25,7 +25,7 @@ Property (..)
 , isCanonical, isConditional, isSRS, isLeftLinear
 , isRightGround, isGround, isOriented, isJoin, isSemiEquational
 , isNormal, isOneCTRS, isTwoCTRS, isThreeCTRS, isTRSConditional
-
+, isCEquation
 
 ) where
 
@@ -76,6 +76,11 @@ nonVarLHS' fs (Rule ((T idt _) :-> r) eqs) = not . isNothing . M.lookup idt $ fs
 isCRule :: Rule -> Bool
 isCRule (Rule _ []) = False 
 isCRule _ = True 
+
+-- | checks if the equation is conditional
+isCEquation :: Equation -> Bool
+isCEquation (Equation _ []) = False 
+isCEquation _ = True 
 
 -- | checks if the non-conditional rule has extra variables
 hasExtraVars :: Set TId -> Rule -> Bool

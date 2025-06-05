@@ -127,7 +127,7 @@ rule =
     return $ Rule (t1 :-> t2) conds
 
 -- | Condition
-cond :: Parser Equation
+cond :: Parser Condition
 cond =
  do reservedOp "="
     t1 <- term

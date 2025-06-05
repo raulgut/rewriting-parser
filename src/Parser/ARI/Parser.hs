@@ -17,13 +17,14 @@ module Parser.ARI.Parser (
 
 -- * Exported functions
 
-parseARI
+parseARI, parseExtARI
 
 )  where
 
 import Parser.ARI.TRS.Parser (trsParser)
 import Parser.TRS.Grammar (Spec (..), Decl (..), TRSType(..), TRS (..), CondType (..)
-  , Term (..), Rule (..), TId, TRSType (..), getTerms)
+  , Term (..), Rule (..), TId, TRSType (..), getTerms, INF (..), Formula (..)
+  , SimplePredicate (..))
 import Parser.TRS.Properties (nonVarLHS', isConditional, hasExtraVars, hasExtraVars')
 
 import Text.ParserCombinators.Parsec (parse, Parser, ParseError)
@@ -42,6 +43,13 @@ import Control.Monad.State (State, evalState, get, put)
 parseARI :: String -> Either ParseError TRS
 parseARI = checkConsistency . parseTRS
 
+-- | Parses a COPS problem and return a COPS Problem
+parseExtARI :: String -> Either ParseError (TRS, Maybe INF)
+parseExtARI str 
+  = case (checkConsistency . parseTRS $ str) of
+      Left parseError -> Left parseError
+      Right myTRS -> Right (myTRS, Nothing)
+
 -- | Parses a term rewriting system in COPS format
 parseTRS :: String -> Either ParseError Spec
 parseTRS s = doParse s trsParser
@@ -55,7 +63,7 @@ doParse s p = parse p "" s
 checkConsistency :: Either ParseError Spec -> Either ParseError TRS 
 checkConsistency (Left parseError) = Left parseError
 checkConsistency (Right (Spec decls)) 
-  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] TRSStandard)
+  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] (Formula $ T "true" []) TRSStandard)
 
 -- | Extracts the signature and checks if the rules are well-formed wrt that
 -- signature. Precondition: Declarations are in order.

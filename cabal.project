@@ -1,4 +1,4 @@
 packages: *.cabal
 
-package csrs-syntax-checker
+package rewriting-parser 
   optimization: False

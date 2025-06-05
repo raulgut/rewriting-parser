@@ -18,14 +18,17 @@ module Parser.TRS.Grammar (
 
 -- * Exported data
 
-Spec(..), Decl(..), Equation (..), SimpleRule (..)
+Spec(..), Decl(..), Condition (..), SimpleRule (..)
 , Rule(..), Term (..), TId, CondType (..), TRSType (..)
-, TRS (..)
+, TRS (..), ProbType (..), INF (..), SimpleEquation (..)
+, Equation (..), SimplePredicate (..), Predicate (..)
+, Formula (..)
 
 -- * Exported functions
 
 , getTerms, getVars, getVars', lhs, rhs, getMSVars', conds
-, eqlhs, eqrhs, matches
+, eqlhs, eqrhs, matches, getTermsEq, getEqTerms, getPredTerms
+, getFormulaTerms
 
 ) where
 
@@ -50,24 +53,72 @@ data Spec = Spec [Decl] -- ^ List of declarations
 
 -- | List of declarations
 data Decl = CType CondType -- ^ Type of conditional rules
+   -- Standard declarations
    | Var [TId] -- ^ Set of variables
    | Signature [(TId,Int)] -- ^ Extended signature
    | Rules [Rule] -- ^ Set of rules
    | Context [(TId, [Int])] -- ^ Context-Sensitive strategy
    | Comment String -- ^ Extra information
    | Format TRSType
+   -- Extended declarations for INF
+   | Problem ProbType -- ^ Kind of problem
+   | CVar [TId] -- ^ Set of condition variables
+   | Conditions [[Condition]]
+   -- Extended declarations for GTRSs/Maude Theories in infChecker
+   | Equations [Equation] -- ^ Set of equations
+   | Predicates [Predicate] -- ^ Set of equations
+   | FOTheory Formula -- ^ FO formula
      deriving (Eq, Show, Data, Typeable)
 
--- | Equation declaration
-data Equation = Term :==: Term -- ^ Equation
-              deriving (Eq, Data, Typeable)
+-- | Condition declaration
+data Condition = Term :==: Term         -- ^ Equation
+               -- Extended declaration
+               |Term ::-> Term          -- ^ One-step
+               |Term ::->* Term         -- ^ Zero or more steps
+               |Term ::->= Term         -- ^ Zero or one steps
+               |Term ::->+ Term         -- ^ One or more steps
+               |Term :-><- Term        -- ^ Joinability
+               |Term :<--> Term         -- ^ Semi-equational one
+               |Term :<-->* Term        -- ^ Semi-equational
+               |Term ::\-> Term         -- ^ One-step mu-rewriting
+               |Term ::\->* Term        -- ^ Zero or more mu-rewriting steps
+               |Term ::\->= Term        -- ^ Zero or on mu-rewriting steps
+               |Term ::\->+ Term        -- ^ One or more mu-rewriting steps
+               |Term :\-><-/ Term      -- ^ Mu-Joinability
+               |Term :<-/\-> Term       -- ^ Semi-equational one mu-rewriting
+               |Term :<-/\->* Term      -- ^ Semi-equational mu-rewriting
+               |Term :|>= Term          -- ^ Subterm
+               |Term :|> Term           -- ^ Strict subterm
+               | Term :=: Term          -- ^ Equational condition
+               | PrAC TId [Term]         -- ^ Predicate Atom condition
+               deriving (Eq, Data, Typeable)
+
+-- | Formula declaration
+data Formula = Formula Term
+             deriving (Eq, Data, Typeable)
 
 -- | Simple rule declaration
 data SimpleRule = Term :-> Term -- ^ Rewriting rule
      deriving (Eq, Data, Typeable)
 
 -- | Rule declaration
-data Rule = Rule SimpleRule [Equation] -- ^ Conditional rewriting rule
+data Rule = Rule SimpleRule [Condition] -- ^ Conditional rewriting rule
+            deriving (Eq, Data, Typeable)
+
+-- | Simple equation declaration
+data SimpleEquation = Term := Term -- ^ Equation
+     deriving (Eq, Data, Typeable)
+
+-- | Equation declaration
+data Equation = Equation SimpleEquation [Condition] -- ^ Conditional Equation
+            deriving (Eq, Data, Typeable)
+
+-- | Simple Horn Clause declaration
+data SimplePredicate = PrA TId [Term] -- ^ Predicate atom
+     deriving (Eq, Data, Typeable)
+
+-- | Horn Clause declaration
+data Predicate = Predicate SimplePredicate [Condition] -- ^ Horn clause
             deriving (Eq, Data, Typeable)
 
 -- | Term declaration
@@ -97,8 +148,22 @@ data TRS
         , trsVariables :: Set TId
         , trsRMap :: [(TId, [Int])]
         , trsRules :: [Rule]
+        , trsEquations :: [Equation]
+        , trsPredicates :: [Predicate]
+        , trsFOTheory :: Formula
         , trsType :: TRSType
         } deriving (Show)
+
+-- | Infeasibility condition
+data INF 
+  = INF { trsCondVariables :: Set TId
+        , trsConditions :: [[Condition]]
+        } deriving (Show)
+
+-- | Problem type
+data ProbType =
+  INFEASIBILITY
+  deriving (Eq, Show, Data, Typeable)
 
 -----------------------------------------------------------------------------
 -- Instances
@@ -106,8 +171,26 @@ data TRS
 
 -- Show
 
-instance Show Equation where
+instance Show Condition where
   show (t1 :==: t2) = show t1 ++ " == " ++ show t2
+  show (t1 ::-> t2) = show t1 ++ " -> " ++ show t2
+  show (t1 ::->* t2) = show t1 ++ " ->* " ++ show t2
+  show (t1 ::->= t2) = show t1 ++ " ->= " ++ show t2
+  show (t1 ::->+ t2) = show t1 ++ " ->+ " ++ show t2
+  show (t1 :-><- t2) = show t1 ++ " -><- " ++ show t2
+  show (t1 :<--> t2) = show t1 ++ " <--> " ++ show t2
+  show (t1 :<-->* t2) = show t1 ++ " <-->* " ++ show t2
+  show (t1 ::\-> t2) = show t1 ++ " \\-> " ++ show t2
+  show (t1 ::\->* t2) = show t1 ++ " \\->* " ++ show t2
+  show (t1 ::\->= t2) = show t1 ++ " \\->= " ++ show t2
+  show (t1 ::\->+ t2) = show t1 ++ " \\->+ " ++ show t2
+  show (t1 :\-><-/ t2) = show t1 ++ " \\-><-/ " ++ show t2
+  show (t1 :<-/\-> t2) = show t1 ++ " <-/\\-> " ++ show t2
+  show (t1 :<-/\->* t2) = show t1 ++ " <-/\\->* " ++ show t2
+  show (t1 :|>= t2) = show t1 ++ " |>= " ++ show t2
+  show (t1 :|> t2) = show t1 ++ " |> " ++ show t2
+  show (t1 :=: t2) = show t1 ++ " = " ++ show t2
+  show (PrAC f ts) = show (T f ts)
 
 instance Show SimpleRule where 
   show (t1 :-> t2) = show t1 ++ " -> " ++ show t2
@@ -115,6 +198,23 @@ instance Show SimpleRule where
 instance Show Rule where 
   show (Rule r []) = show r
   show (Rule r eqs) = show r ++ " | " ++ (concat . intersperse ", " . map show $ eqs)
+
+instance Show SimpleEquation where 
+  show (t1 := t2) = show t1 ++ " = " ++ show t2
+
+instance Show Equation where 
+  show (Equation eq []) = show eq
+  show (Equation eq eqs) = show eq ++ " | " ++ (concat . intersperse ", " . map show $ eqs)
+
+instance Show SimplePredicate where 
+  show (PrA f ts) = show (T f ts)
+
+instance Show Predicate where 
+  show (Predicate p []) = show p
+  show (Predicate p eqs) = show p ++ " | " ++ (concat . intersperse ", " . map show $ eqs)
+
+instance Show Formula where 
+  show (Formula p) = show p
 
 instance Show Term where
     show (T f []) = f 
@@ -145,8 +245,38 @@ getTerms :: Rule -> [Term]
 getTerms (Rule (l :-> r) eqs) = (l:r:concatMap getTermsEq eqs)
 
 -- | gets all the terms from a equation
-getTermsEq :: Equation -> [Term]
+getTermsEq :: Condition -> [Term]
 getTermsEq (l :==: r) = [l,r]
+getTermsEq (l ::-> r) = [l,r]
+getTermsEq (l ::->* r) = [l,r]
+getTermsEq (l ::->= r) = [l,r]
+getTermsEq (l ::->+ r) = [l,r]
+getTermsEq (l :-><- r) = [l,r]
+getTermsEq (l :<--> r) = [l,r]
+getTermsEq (l :<-->* r) = [l,r]
+getTermsEq (l ::\-> r) = [l,r]
+getTermsEq (l ::\->* r) = [l,r]
+getTermsEq (l ::\->= r) = [l,r]
+getTermsEq (l ::\->+ r) = [l,r]
+getTermsEq (l :\-><-/ r) = [l,r]
+getTermsEq (l :<-/\-> r) = [l,r]
+getTermsEq (l :<-/\->* r) = [l,r]
+getTermsEq (l :|>= r) = [l,r]
+getTermsEq (l :|> r) = [l,r]
+getTermsEq (l :=: r) = [l,r]
+getTermsEq (PrAC f ts) = [T f ts]
+
+-- | gets all the terms from a equation
+getEqTerms :: Equation -> [Term]
+getEqTerms (Equation (l := r) eqs) = (l:r:concatMap getTermsEq eqs)
+
+-- | gets all the terms from a predicate
+getPredTerms :: Predicate -> [Term]
+getPredTerms (Predicate (PrA f terms) eqs) = ((T f terms):concatMap getTermsEq eqs)
+
+-- | gets all the terms from a formula
+getFormulaTerms :: Formula -> [Term]
+getFormulaTerms (Formula t) = [t]
 
 -- | get the left-hand side of a rule
 lhs :: Rule -> Term
@@ -157,15 +287,15 @@ rhs :: Rule -> Term
 rhs (Rule (_ :-> r) _) = r
 
 -- | get the equations a rule
-conds :: Rule -> [Equation]
+conds :: Rule -> [Condition]
 conds (Rule _ eqs) = eqs
 
 -- | get the left-hand side of a equation
-eqlhs :: Equation -> Term
+eqlhs :: Condition -> Term
 eqlhs (l :==: _) = l
 
 -- | get the right-hand side of a equation
-eqrhs :: Equation -> Term
+eqrhs :: Condition -> Term
 eqrhs (_ :==: r) = r
 
 -- | gets all the vars from a term

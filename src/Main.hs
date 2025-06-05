@@ -41,7 +41,7 @@ main =
              , inputContent = input
              , optProperty = prop } = opts
      filedata <- input
-     let !trs = autoparse filename filedata
+     let !(trs,inf) = autoparse filename filedata
      case prop of 
       Canonical -> if (not . isCanonical $ trs) then
                      hPutStr stdout "NO\n\nProperty canonical:\n -> The replacement map is not canonical!\n"

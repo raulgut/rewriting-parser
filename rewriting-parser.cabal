@@ -1,12 +1,11 @@
-name:	csrs-syntax-checker
+name:	rewriting-parser
 version: 	0.2
 cabal-version:	>= 1.2
 description: 	A tool for checking CS-TRSs and CS-CTRSs format 
-license: 	AllRightsReserved
 license-file: 	LICENSE
 copyright:
 author:	Raul Gutierrez
-maintainer:	r.gutierrez@upm.es
+maintainer:	raguti@upv.es
 build-type:	Simple
 stability:
 homepage:	
@@ -15,7 +14,25 @@ synopsis:
 category:
 tested-with:
 
-Executable csrs-check
+Library
+  exposed-modules:
+    Interface.RewParserLibrary
+  other-modules: 
+    Interface.CLI
+    Parser.TRS.Grammar
+    Parser.TRS.Properties
+    Parser.COPS.Parser
+    Parser.COPS.TRS.Parser
+    Parser.COPS.TRS.Scanner
+    Parser.ARI.Parser
+    Parser.ARI.TRS.Parser
+    Parser.ARI.TRS.Scanner
+  build-depends: 	base > 4, pretty, parsec, syb, containers, mtl, multiset
+  hs-source-dirs: 	src
+  ghc-options: -O2
+  extensions: 
+
+Executable rew-check
   buildable: True
   main-is: Main.hs
   other-modules: 

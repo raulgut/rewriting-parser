@@ -30,10 +30,10 @@ Opt(..), Property (..)
 
 ) where
 
-import Parser.TRS.Grammar (TRS)
+import Parser.TRS.Grammar (TRS, INF)
 import Parser.TRS.Properties (Property (..))
-import Parser.COPS.Parser (parseCOPS)
-import Parser.ARI.Parser (parseARI)
+import Parser.COPS.Parser (parseCOPS, parseExtCOPS)
+import Parser.ARI.Parser (parseARI, parseExtARI)
 import System.Environment (getProgName, getArgs)
 import System.Exit (ExitCode(ExitSuccess,ExitFailure), exitWith, exitFailure)
 import System.IO (hPutStrLn, stderr, hFlush)
@@ -158,11 +158,13 @@ parseOptions = do (optsActions, rest, errors) <- getArgs
                   return (opts, rest)
 
 -- | File extensions
-fileExtensions :: [(String, String -> Either ParseError TRS)]
-fileExtensions = [(".ari", parseARI),(".trs", parseCOPS)]
+--fileExtensions :: [(String, String -> Either ParseError TRS)]
+-- fileExtensions = [(".ari", parseARI),(".trs", parseCOPS)]
+fileExtensions :: [(String, String -> Either ParseError (TRS, Maybe INF))]
+fileExtensions = [(".ari", parseExtARI),(".trs", parseExtCOPS)]
 
 -- | Parse file into a TRS
-autoparse :: String -> String -> TRS
+autoparse :: String -> String -> (TRS, Maybe INF)
 autoparse fname = maybe (error "Error (CLI): File Extension not supported")
                         parseWithFailure
                         matchParser
