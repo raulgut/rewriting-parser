@@ -68,7 +68,7 @@ checkConsistency (Left parseError) = Left parseError
 checkConsistency (Right (Spec decls)) 
   = case foldl checkDeclaration (Right (Spec [])) decls of 
      Left parseError -> Left parseError
-     Right (Spec _) -> evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] (Formula $ T "true" []) TRSStandard)
+     Right (Spec _) -> evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] Nothing TRSStandard)
 
 -- | Checks consistency (order, arguments and replacement map)
 checkExtConsistency :: Either ParseError Spec -> Either ParseError (TRS, Maybe INF) 
@@ -76,12 +76,12 @@ checkExtConsistency (Left parseError) = Left parseError
 checkExtConsistency (Right (Spec (Problem ptype:decls))) -- Infeasibility unfolded problem 
   = case foldl checkExtDeclaration (Right (Spec [])) (Problem ptype:decls) of 
      Left parseError -> Left parseError
-     Right (Spec checkedDecls) -> evalState (checkExtWellFormed (reverse checkedDecls)) (TRS M.empty S.empty [] [] [] [] (Formula $ T "true" []) TRSStandard, Nothing)
+     Right (Spec checkedDecls) -> evalState (checkExtWellFormed (reverse checkedDecls)) (TRS M.empty S.empty [] [] [] [] Nothing TRSStandard, Nothing)
 checkExtConsistency (Right (Spec decls)) -- Confluence problem 
   = case foldl checkDeclaration (Right (Spec [])) decls of 
      Left parseError -> Left parseError
      Right (Spec _) -> 
-      case (evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] (Formula $ T "true" []) TRSStandard)) of
+      case (evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] Nothing TRSStandard)) of
         Left parseError -> Left parseError
         Right myTRS -> Right (myTRS, Nothing)
 
@@ -269,7 +269,7 @@ checkExtWellFormed (FOTheory f:rest) = do { (myTRS,myINF) <- get
                                              ; case result of
                                                  Left parseError -> return . Left $ parseError
                                                  Right _ -> do { (myTRS,myINF) <- get
-                                                               ; put $ (myNewTRS {trsFOTheory = f},myINF)
+                                                               ; put $ (myNewTRS {trsFOTheory = Just f},myINF)
                                                                ; checkExtWellFormed rest
                                                                }
                                              }

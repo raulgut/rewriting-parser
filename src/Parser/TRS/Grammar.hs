@@ -150,7 +150,7 @@ data TRS
         , trsRules :: [Rule]
         , trsEquations :: [Equation]
         , trsPredicates :: [Predicate]
-        , trsFOTheory :: Formula
+        , trsFOTheory :: Maybe Formula
         , trsType :: TRSType
         } deriving (Show)
 

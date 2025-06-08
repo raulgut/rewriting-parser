@@ -17,7 +17,8 @@ module Interface.RewParserLibrary (
 -- * Exported data
 
 TRS (..), INF (..), TRSType (..), CondType (..), Rule (..), SimpleRule (..)
-, Term (..), Condition (..)
+, Term (..), Condition (..), Equation (..), SimpleEquation (..), Predicate (..)
+, SimplePredicate (..), Formula (..)
 
 -- * Exported functions
 
@@ -27,7 +28,8 @@ TRS (..), INF (..), TRSType (..), CondType (..), Rule (..), SimpleRule (..)
 
 import Interface.CLI (autoparse)
 import Parser.TRS.Grammar (TRS (..), INF (..), TRSType (..), CondType (..), Rule (..)
-  , SimpleRule (..), Term (..), Condition (..))
+  , SimpleRule (..), Term (..), Condition (..), Equation (..), SimpleEquation (..)
+  , Predicate (..), SimplePredicate (..), Formula (..))
 
 -----------------------------------------------------------------------------
 -- Functions

@@ -63,7 +63,7 @@ doParse s p = parse p "" s
 checkConsistency :: Either ParseError Spec -> Either ParseError TRS 
 checkConsistency (Left parseError) = Left parseError
 checkConsistency (Right (Spec decls)) 
-  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] (Formula $ T "true" []) TRSStandard)
+  = evalState (checkWellFormed decls) (TRS M.empty S.empty [] [] [] [] Nothing TRSStandard)
 
 -- | Extracts the signature and checks if the rules are well-formed wrt that
 -- signature. Precondition: Declarations are in order.
