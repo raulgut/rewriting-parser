@@ -114,7 +114,7 @@ formulaTerm = try formulaTerm3 <|> parens formulaTerm <|> formulaTerm'
 -- | A formula term
 formulaTerm3 :: Parser Term
 formulaTerm3 = do t1 <- parens formulaTerm <|> formulaTerm'
-                  op <- identifier
+                  op <- formulaOps
                   t2 <- parens formulaTerm <|> formulaTerm'
                   return $ T op [t1,t2]
 
@@ -238,6 +238,33 @@ condOps = (reservedOp "==" >> return (:==:)) <|>
           (reservedOp "|>" >> return (:|>=)) <|>
           (do a <- identifier 
               return (\x y -> PrAC a [x,y]))
+
+-- | Condition options
+--condOps = (reservedOp "==" >> return (:==:))
+formulaOps = (reservedOp "==" >> return ("==")) <|>
+          (reservedOp "->*" >> return ("->*")) <|>
+          (reservedOp "->=" >> return ("->=")) <|>
+          (reservedOp "->+" >> return ("->+")) <|>
+          (reservedOp "->*<-" >> return ("->*<-")) <|>
+          (reservedOp "->" >> return ("->")) <|>
+          (reservedOp "\\->*" >> return ("\\->*")) <|>
+          (reservedOp "\\->=" >> return ("->=")) <|>
+          (reservedOp "\\->+" >> return ("\\->+")) <|>
+          (reservedOp "\\->*<-/" >> return ("\\-><-/")) <|>
+          (reservedOp "\\->" >> return ("\\->")) <|>
+          (reservedOp "<-->*" >> return ("<-->*")) <|>
+          (reservedOp "<-->" >> return ("<-->")) <|>
+          (reservedOp "<-/\\->*" >> return ("<-/\\->*")) <|>
+          (reservedOp "<-/\\->" >> return ("<-/\\->")) <|>
+          (reservedOp "=" >> return ("=")) <|>
+          (reservedOp "|>=" >> return ("|>=")) <|>
+          (reservedOp "|>" >> return ("|>=")) <|>
+          (reservedOp "/\\" >> return ("/\\")) <|>
+          (reservedOp "\\/" >> return ("\\/")) <|>
+          (reservedOp "=>" >> return ("=>")) <|>
+          (reservedOp "<=>" >> return ("<=>")) <|>
+          (do a <- identifier 
+              return a)
 
 -- | Context-sensitive strategy
 declCSStrategy :: Parser Decl
