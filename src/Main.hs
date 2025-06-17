@@ -58,7 +58,7 @@ main =
                       if (not . isLeftLinear $ trs) then
                         hPutStr stdout "NO\n\nProperty Left Linear:\n -> The system is not Left Linear!\n"
                       else
-                        hPutStr stdout ("YES\n" ++ (show $ trs)) 
+                        hPutStr stdout "YES\n" 
                     else
                       hPutStr stdout "NO\n\nProperty Left Linear:\n -> The format is neither TRS nor CTRS\n"
       RightGround -> if (trsType trs == TRSStandard) then
