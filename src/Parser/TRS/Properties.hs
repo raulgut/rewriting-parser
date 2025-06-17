@@ -34,13 +34,13 @@ import Parser.TRS.Grammar as G
 import Data.Map as M (Map, empty, lookup, insert, fromList, insertWith, elems, assocs)
 import Data.Set as S (Set, empty, fromList, member, unions, insert, (\\)
   , null, union, isSubsetOf)
-import Data.MultiSet as MS (occur, findMax, null)
+import Data.MultiSet as MS (occur, null, elems)
 import Data.List (sort, nub)
 import Control.Monad.State (State, evalState, get, put)
 import Data.List (intersperse)
 import Data.Maybe (isNothing)
 import Control.Monad.State (MonadState (..), execState)
-import Debug.Trace (trace)
+
 -----------------------------------------------------------------------------
 -- Data
 -----------------------------------------------------------------------------
@@ -156,7 +156,7 @@ isLeftLinear trs = Prelude.null . Prelude.filter (>1) . Prelude.map getMaxOccur 
                          in if MS.null vs then
                               0
                             else 
-                              occur (findMax vs) vs
+                              maximum . Prelude.map (\x -> occur x vs) . MS.elems $ vs
 
 -- | Checks if the TRS is rigth-ground
 isRightGround :: TRS -> Bool
