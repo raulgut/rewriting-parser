@@ -440,8 +440,10 @@ checkCTerm (T id terms) = do { (myTRS,myINF) <- get
                             ; let cvars = trsCondVariables myINF
                             ; let funcs = trsSignature myTRS
                             ; let arglen = length terms
-                            ; case (S.member id cvars, M.lookup id funcs) of 
-                               (False, Nothing) -> return . Left $ newErrorMessage (UnExpect $ "function symbol " ++ id ++ " not in signature") (newPos "" 0 0)
+                            ; case (S.member id cvars, M.lookup id funcs) of
+                               (False, Nothing) -> do { put $ (myTRS { trsSignature = M.insert id arglen $ funcs },myINF)
+                                                      ; checkCTerms terms
+                                                      }
                                (False, Just len) -> if (arglen == len) then 
                                                       checkCTerms terms 
                                                     else
