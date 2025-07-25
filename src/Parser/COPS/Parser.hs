@@ -89,9 +89,9 @@ checkExtConsistency (Right (Spec decls)) -- Confluence problem
 checkDeclaration :: Either ParseError Spec -> Decl -> Either ParseError Spec
 checkDeclaration (Left parseError) _ = Left parseError
 checkDeclaration (Right (Spec [])) (CType ctype) = Right . Spec $ [CType ctype]
-checkDeclaration (Right (Spec [])) (Var vs) = Right . Spec $ [Var vs]
-checkDeclaration (Right (Spec [])) (Context rmap) = Right . Spec $ [Context rmap]
-checkDeclaration (Right (Spec [])) (Rules rs) = Right . Spec $ [Rules rs]
+checkDeclaration (Right (Spec [])) (Var vs) = Right . Spec $ [Var vs, CType Oriented] -- Oriented by default
+checkDeclaration (Right (Spec [])) (Context rmap) = Right . Spec $ [Context rmap, CType Oriented] -- Oriented by default
+checkDeclaration (Right (Spec [])) (Rules rs) = Right . Spec $ [Rules rs, CType Oriented] -- Oriented by default
 checkDeclaration (Right (Spec [CType ctype])) (Var vs) = Right . Spec $ [Var vs, CType ctype]
 checkDeclaration (Right (Spec [CType ctype])) (Context rmap) = Right . Spec $ [Context rmap, CType ctype]
 checkDeclaration (Right (Spec [CType ctype])) (Rules rs) = Right . Spec $ [Rules rs, CType ctype]
@@ -112,14 +112,14 @@ checkExtDeclaration :: Either ParseError Spec -> Decl -> Either ParseError Spec
 checkExtDeclaration (Left parseError) _ = Left parseError
 checkExtDeclaration (Right (Spec [])) (Problem ptype) = Right . Spec $ [Problem ptype]
 checkExtDeclaration (Right (Spec [])) (CType ctype) = Right . Spec $ [CType ctype]
-checkExtDeclaration (Right (Spec [])) (Var vs) = Right . Spec $ [Var vs]
-checkExtDeclaration (Right (Spec [])) (Context rmap) = Right . Spec $ [Context rmap]
-checkExtDeclaration (Right (Spec [])) (Rules rs) = Right . Spec $ [Rules rs]
+checkExtDeclaration (Right (Spec [])) (Var vs) = Right . Spec $ [Var vs, CType Oriented]  -- Oriented by default
+checkExtDeclaration (Right (Spec [])) (Context rmap) = Right . Spec $ [Context rmap, CType Oriented]  -- Oriented by default
+checkExtDeclaration (Right (Spec [])) (Rules rs) = Right . Spec $ [Rules rs, CType Oriented]  -- Oriented by default
 checkExtDeclaration (Right (Spec [Problem ptype])) (CType ctype) = Right . Spec $ [CType ctype, Problem ptype]
-checkExtDeclaration (Right (Spec [Problem ptype])) (Var vs) = Right . Spec $ [Var vs, Problem ptype]
-checkExtDeclaration (Right (Spec [Problem ptype])) (Context rmap) = Right . Spec $ [Context rmap, Problem ptype]
-checkExtDeclaration (Right (Spec [Problem ptype])) (Rules rs) = Right . Spec $ [Rules rs, Problem ptype]
-checkExtDeclaration (Right (Spec [Problem ptype])) (Comment c) = Right . Spec $ [Comment c, Problem ptype]
+checkExtDeclaration (Right (Spec [Problem ptype])) (Var vs) = Right . Spec $ [Var vs, CType Oriented, Problem ptype]   -- Oriented by default
+checkExtDeclaration (Right (Spec [Problem ptype])) (Context rmap) = Right . Spec $ [Context rmap, CType Oriented, Problem ptype]   -- Oriented by default
+checkExtDeclaration (Right (Spec [Problem ptype])) (Rules rs) = Right . Spec $ [Rules rs, CType Oriented, Problem ptype]   -- Oriented by default
+checkExtDeclaration (Right (Spec [Problem ptype])) (Comment c) = Right . Spec $ [Comment c, CType Oriented, Problem ptype]   -- Oriented by default
 checkExtDeclaration (Right (Spec (Comment c:rest))) (CType ctype) = Right . Spec $ (CType ctype:Comment c:rest)
 checkExtDeclaration (Right (Spec (Comment c:rest))) (Var vs) = Right . Spec $ (Var vs:Comment c:rest)
 checkExtDeclaration (Right (Spec (Comment c:rest))) (Context rmap) = Right . Spec $ (Context rmap:Comment c:rest)
