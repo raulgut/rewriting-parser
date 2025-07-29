@@ -17,7 +17,7 @@ module Parser.COPS.Parser (
 
 -- * Exported functions
 
-parseCOPS, parseExtCOPS
+parseCOPS, parseExtCOPS, checkExtConsistency, checkExtWellFormed
 
 )  where
 
@@ -241,8 +241,7 @@ checkExtWellFormed (Rules rs:rest) = do { (myTRS,myINF) <- get
                                      ; let (result,myNewTRS) = runState (checkRules rs) myTRS
                                      ; case result of
                                          Left parseError -> return . Left $ parseError
-                                         Right _ -> do { (myTRS,myINF) <- get
-                                                       ; put $ (myNewTRS {trsRules = rs},myINF)
+                                         Right _ -> do { put $ (myNewTRS {trsRules = rs},myINF)
                                                        ; checkExtWellFormed rest
                                                        }
                                      }

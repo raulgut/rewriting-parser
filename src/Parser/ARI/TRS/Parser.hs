@@ -42,13 +42,17 @@ decls = do { try whiteSpace
            ; reserved "format"
            ; whiteSpace
            ; declTRSs
+           ; 
            }
 
 -- | A declaration for unsorted TRSs without theory
 declTRSs = do { dformat <- declTRSFormat <|> declCTRSFormat <|> declCSTRSFormat <|> declCSCTRSFormat
+              ; dptype <- option [] problemType
+              ; char ')'
               ; dfuncs <- (whiteSpace >> declSignature)
               ; drules <- (whiteSpace >> declRules)
-              ; return $ (dformat:dfuncs) ++ [drules]
+              ; dqueries <- (whiteSpace >> declQuery)
+              ; return $ dptype ++ [dformat] ++ dfuncs ++ [drules] ++ [dqueries]
               }
 
 -- Formats
@@ -56,7 +60,6 @@ declTRSs = do { dformat <- declTRSFormat <|> declCTRSFormat <|> declCSTRSFormat 
 -- | TRS format
 declTRSFormat :: Parser Decl
 declTRSFormat = do { reserved "TRS" 
-                    ; char ')'
                     ; return . Format $ TRSStandard
                     }
 
@@ -65,19 +68,17 @@ declTRSFormat = do { reserved "TRS"
 declCTRSFormat :: Parser Decl
 declCTRSFormat = do { reserved "CTRS" 
                     ; condtyp <- (semiEq <|> join <|> oriented)
-                    ; char ')'
                     ; return . Format $ TRSConditional condtyp
                     }
 
 -- | CSTRS format
 declCSTRSFormat :: Parser Decl
-declCSTRSFormat = reserved "CSTRS" >> char ')' >> return (Format TRSContextSensitive)
+declCSTRSFormat = reserved "CSTRS" >> return (Format TRSContextSensitive)
 
 -- | CSCTRS format
 declCSCTRSFormat :: Parser Decl
 declCSCTRSFormat = do { reserved "CSCTRS" 
                       ; condtyp <- (semiEq <|> join <|> oriented)
-                      ; char ')'
                       ; return . Format $ TRSContextSensitiveConditional condtyp
                       }
 
@@ -100,7 +101,7 @@ oriented = reserved "oriented" >> return Oriented
 -- | Rules declaration is formed by a reserved word plus a set of
 --   rules
 declRules :: Parser Decl
-declRules = liftM Rules (many (parens rule))
+declRules = liftM Rules (many (try $ parens rule))
    
 -- | A term
 term :: Parser Term
@@ -134,6 +135,19 @@ cond =
     t2 <- term
     return (t1 :==: t2)
 
+-- Infeasibility conditions
+
+-- | Query declaration is formed by a reserved word plus a set of conditions
+declQuery :: Parser Decl
+declQuery = liftM Conditions (many (try $ parens query))
+
+-- | Query
+query :: Parser [Condition]
+query =
+ do reserved "infeasible?"
+    conds <- many1 (parens cond)
+    return conds 
+
 -- Signature
 
 -- | Signature declaration is formed by list of functions with arity
@@ -162,6 +176,13 @@ replacementMap = do { whiteSpace
                     ; ps <- parens (blankSep' natural)
                     ; return . Just $ (map fromInteger ps)
                     }
+
+-- | Problem Type (INF)
+problemType :: Parser [Decl]
+problemType = do { whiteSpace
+                 ; reserved ":problem infeasibility" 
+                 ; return [Problem INFEASIBILITY]
+                 }
 
 -- | Separated by comma
 blankSep' :: Text.ParserCombinators.Parsec.Prim.GenParser Char () a
