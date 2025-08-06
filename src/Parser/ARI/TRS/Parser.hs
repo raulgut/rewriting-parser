@@ -26,6 +26,7 @@ import Text.ParserCombinators.Parsec (Parser(..), (<|>), many1, sepEndBy
   , many, option, char, sepBy, try, noneOf, digit, (<?>), eof, manyTill)
 import Text.ParserCombinators.Parsec.Prim (GenParser)
 import Control.Monad (liftM)
+import Data.Maybe (isJust, fromJust)
 
 -----------------------------------------------------------------------------
 -- Functions
@@ -52,7 +53,7 @@ declTRSs = do { dformat <- declTRSFormat <|> declCTRSFormat <|> declCSTRSFormat 
               ; dfuncs <- (whiteSpace >> declSignature)
               ; drules <- (whiteSpace >> declRules)
               ; dqueries <- (whiteSpace >> declQuery)
-              ; return $ dptype ++ [dformat] ++ dfuncs ++ [drules] ++ [dqueries]
+              ; return $ dptype ++ [dformat] ++ dfuncs ++ [drules] ++ (if isJust dqueries then [fromJust dqueries] else [])
               }
 
 -- Formats
@@ -138,8 +139,8 @@ cond =
 -- Infeasibility conditions
 
 -- | Query declaration is formed by a reserved word plus a set of conditions
-declQuery :: Parser Decl
-declQuery = liftM Conditions (many (try $ parens query))
+declQuery :: Parser (Maybe Decl)
+declQuery = option Nothing (liftM (Just . Conditions) (many1 (try $ parens query)))
 
 -- | Query
 query :: Parser [Condition]

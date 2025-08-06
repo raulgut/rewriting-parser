@@ -26,7 +26,7 @@ Opt(..), Property (..)
 
 -- * Exported functions
 
-, parseOptions, autoparse
+, parseOptions, autoparse, parseARI
 
 ) where
 

@@ -22,11 +22,11 @@ TRS (..), INF (..), TRSType (..), CondType (..), Rule (..), SimpleRule (..)
 
 -- * Exported functions
 
-, executeRewParser
+, executeRewParser, parseARI
 
 ) where
 
-import Interface.CLI (autoparse)
+import Interface.CLI (autoparse, parseARI)
 import Parser.TRS.Grammar (TRS (..), INF (..), TRSType (..), CondType (..), Rule (..)
   , SimpleRule (..), Term (..), Condition (..), Equation (..), SimpleEquation (..)
   , Predicate (..), SimplePredicate (..), Formula (..))

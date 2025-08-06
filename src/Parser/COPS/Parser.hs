@@ -458,14 +458,14 @@ checkCTerm (T id terms) = do { (myTRS,myINF) <- get
 -- | Checks if the replacement map satisfies arity restriction and increasing order
 checkRMap :: [(TId, [Int])] -> State TRS (Either ParseError ())
 checkRMap [] = return . Right $ ()
-checkRMap ((f,[]):rmaps) = do { myTRS <- get 
-                              ; case M.lookup f (trsSignature myTRS) of 
-                                  Nothing -> return . Left $ newErrorMessage (UnExpect $ "function symbol " ++ f ++ " in replacement map (the symbol does not appear in rules)") (newPos "" 0 0)
-                                  Just arity -> checkRMap rmaps 
-                              }
+checkRMap ((f,[]):rmaps) = checkRMap rmaps
 checkRMap ((f,rmap):rmaps) = do { myTRS <- get 
                                 ; case M.lookup f (trsSignature myTRS) of 
-                                   Nothing -> return . Left $ newErrorMessage (UnExpect $ "function symbol " ++ f ++ " in replacement map (the symbol does not appear in rules)") (newPos "" 0 0)
+                                   Nothing -> let srmap = sort rmap in
+                                              if (rmap == srmap) && (head rmap >= 1) then
+                                                   checkRMap rmaps 
+                                                 else
+                                                   return . Left $ newErrorMessage (UnExpect $ "replacement map for symbol " ++ f ++ " (must be empty or an ordered list of numbers separated by commas" ++ ")") (newPos "" 0 0)
                                    Just arity -> let srmap = sort rmap in
                                                  if (rmap == srmap) && (head rmap >= 1) && (last rmap <= arity) then
                                                    checkRMap rmaps 
